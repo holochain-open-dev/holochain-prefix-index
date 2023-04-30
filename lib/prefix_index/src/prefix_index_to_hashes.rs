@@ -1,14 +1,14 @@
 use hdk::{hash_path::path::Component, prelude::*};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
-pub struct PrefixSearchIndex {
+pub struct PrefixIndex {
     pub index_name: String,
     pub link_type: ScopedLinkType,
     pub width: usize,
     pub depth: usize,
 }
 
-impl PrefixSearchIndex {
+impl PrefixIndex {
     pub fn new<T, E>(
         index_name: String,
         link_type: T,
