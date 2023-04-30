@@ -74,25 +74,10 @@ let res2 = index.get_results("walrus", 10);
 ## Todo
 - [ ] Custom Elements for typeahead search using prefix index 
 
-## Environment Setup
-
-> PREREQUISITE: set up the [holochain development environment](https://developer.holochain.org/docs/install/).
-
-Enter the nix shell by running this in the root folder of the repository: 
+## Running the tests
 
 ```bash
 nix-shell
 npm install
-```
-
-**Run all the other instructions in this README from inside this nix-shell, otherwise they won't work**.
-
-
-This will create a network of 2 nodes connected to each other and their respective UIs.
-It will also bring up the Holochain Playground for advanced introspection of the conductors.
-
-## Running the backend tests
-
-```bash
 npm test
 ```
