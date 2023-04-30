@@ -53,9 +53,9 @@ index.get_results("sup", 10);
 
 let res2 = index.get_results("superduper", 10);
 // [
-//   "supercomputing",
 //   "superdupercool",
 //   "superdupercrazy",
+//   "supercomputing",
 //   "supersaturates",
 // ]
 
