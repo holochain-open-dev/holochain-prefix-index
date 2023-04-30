@@ -45,7 +45,7 @@ flowchart LR
 
 5. Now you can search the index.
 ```rust
-index.get_results(SearchResultsInput { query: "sup", limit: 10 });
+index.get_results("sup", 10);
 // [
 //   "supercomputing",
 //   "superdupercool",
@@ -53,7 +53,7 @@ index.get_results(SearchResultsInput { query: "sup", limit: 10 });
 //   "supersaturates",
 // ]
 
-let res2 = index.get_results(SearchResultsInput { query: "superduper", limit: 10 });
+let res2 = index.get_results("superduper", 10);
 // [
 //   "supercomputing",
 //   "superdupercool",
@@ -61,17 +61,17 @@ let res2 = index.get_results(SearchResultsInput { query: "superduper", limit: 10
 //   "supersaturates",
 // ]
 
-let res2 = index.get_results(SearchResultsInput { query: "superduper", limit: 2 });
+let res2 = index.get_results("superduper", 2);
 // [
 //   "superdupercool",
 //   "superdupercrazy",
 // ]
 
-let res2 = index.get_results(SearchResultsInput { query: "else", limit: 2 });
+let res2 = index.get_results("walrus", 10);
 // [ ]
 ```
 
-Note that other similar results located beneath the top-level prefix will be returned ordered by similarity to search query. Make sure to specify a "limit" to reduce the number of returned results.
+*Note that all strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically). Make sure to specify a "limit" to reduce the number of returned results.*
 
 ## Todo
 - [] Custom Elements for typeahead search using prefix index 
