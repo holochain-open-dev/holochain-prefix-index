@@ -6,8 +6,6 @@ A prefix index is useful for typeahead "search" functionality.
 
 ## Usage
 
-Lets say you wanted to make some arbitrary strings searchable.
-
 1. Include the prefix_index crate in your coordinator zome's Cargo.toml:
 
 ```toml
