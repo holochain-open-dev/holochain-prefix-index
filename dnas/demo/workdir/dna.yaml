@@ -1,0 +1,19 @@
+---
+manifest_version: "1"
+name: demo
+integrity:
+  network_seed: ~
+  properties: ~
+  origin_time: 1682873428175535
+  zomes:
+    - name: demo_integrity
+      hash: ~
+      bundled: "../../../target/wasm32-unknown-unknown/release/demo_integrity.wasm"
+      dependencies: ~
+coordinator:
+  zomes:
+    - name: demo
+      hash: ~
+      bundled: "../../../target/wasm32-unknown-unknown/release/demo.wasm"
+      dependencies:
+        - name: demo_integrity

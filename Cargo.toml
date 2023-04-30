@@ -1,0 +1,23 @@
+[profile.dev]
+opt-level = "z"
+
+[profile.release]
+opt-level = "z"
+
+[workspace]
+members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "lib/*"]
+
+[workspace.dependencies]
+hdi = "=0.2.2"
+hdk = "=0.1.2"
+holochain_integrity_types = "=0.1.2"
+serde = "1"
+
+[workspace.dependencies.demo]
+path = "dnas/demo/zomes/coordinator/demo"
+
+[workspace.dependencies.demo_integrity]
+path = "dnas/demo/zomes/integrity/demo"
+
+[workspace.dependencies.prefix_index]
+path = "lib/prefix_index"

@@ -1,0 +1,7 @@
+---
+manifest_version: "1"
+name: prefix-index
+ui:
+  bundled: "../ui/dist.zip"
+happ_manifest:
+  bundled: "./prefix-index.happ"
