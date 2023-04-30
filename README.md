@@ -74,7 +74,7 @@ let res2 = index.get_results("walrus", 10);
 *Note that all strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically). Make sure to specify a "limit" to reduce the number of returned results.*
 
 ## Todo
-- [] Custom Elements for typeahead search using prefix index 
+- [ ] Custom Elements for typeahead search using prefix index 
 
 ## Environment Setup
 
