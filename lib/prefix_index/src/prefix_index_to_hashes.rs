@@ -63,8 +63,10 @@ impl PrefixIndex {
                 )?;
 
                 let path_entry_hash = path.path_entry_hash()?;
-                let result_children: Vec<Link> = children.clone().into_iter()
-                    .filter(|c|  EntryHash::from(c.clone().target) == path_entry_hash)
+                let result_children: Vec<Link> = children
+                    .clone()
+                    .into_iter()
+                    .filter(|c| EntryHash::from(c.clone().target) == path_entry_hash)
                     .collect();
 
                 // Delete children link corresponding to current path
@@ -94,7 +96,9 @@ impl PrefixIndex {
 
     pub fn get_results(&self, query: String, limit: usize) -> ExternResult<Vec<String>> {
         if limit == 0 {
-            return Err(wasm_error!(WasmErrorInner::Guest("limit must be > 0".into())));
+            return Err(wasm_error!(WasmErrorInner::Guest(
+                "limit must be > 0".into()
+            )));
         }
 
         let path = self

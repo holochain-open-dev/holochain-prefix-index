@@ -494,6 +494,7 @@ version = "0.0.1"
 dependencies = [
  "hdi",
  "holochain_integrity_types",
+ "prefix_index",
  "serde",
 ]
 

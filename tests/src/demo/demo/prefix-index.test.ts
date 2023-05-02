@@ -1,7 +1,7 @@
 import { pause, runScenario } from "@holochain/tryorama";
 import { assert, test } from "vitest";
 
-test("search prefix index with width=3, length=3", async () => {
+test("search prefix index with width=3, depth=3", async () => {
   await runScenario(
     async (scenario) => {
       // Set up the app to be installed
@@ -168,7 +168,7 @@ test("search prefix index with width=3, length=3", async () => {
   );
 });
 
-test("search prefix index with width=3, length=5", async () => {
+test("search prefix index with width=3, depth=5", async () => {
   await runScenario(
     async (scenario) => {
       // Set up the app to be installed
@@ -325,7 +325,7 @@ test("search prefix index with width=3, length=5", async () => {
   );
 });
 
-test("search prefix index with width=4, length=2", async () => {
+test("search prefix index with width=4, depth=2", async () => {
   await runScenario(
     async (scenario) => {
       // Set up the app to be installed

@@ -14,7 +14,17 @@ A prefix index is useful for typeahead "search" functionality.
 prefix_index = { git = "https://github.com/mattyg/holochain-prefix-index" module = "prefix_index" }
 ```
 
-2. Setup a prefix index
+2. Include the prefix_index crate in your integrity zome's Cargo.toml and create a link type for the index:
+```rust
+#[hdk_link_types]
+enum LinkTypes {
+    PrefixIndex
+}
+```
+
+3. Add the prefix index validation functions to your validate match arm for CreateLink and DeleteLink on LinkTypes::PrefixIndex
+
+3. Setup a prefix index
 
 ```rust
 use prefix_index::PrefixIndex;
@@ -22,7 +32,7 @@ use prefix_index::PrefixIndex;
 let index = PrefixIndex::new("demo_index".into(), LinkTypes::PrefixIndex, 3, 3)?;
 ```
 
-3. Add some results to the index:
+4. Add some results to the index:
 ```rust
 index.add_result("superdupercool");
 index.add_result("superdupercrazy");
@@ -30,7 +40,7 @@ index.add_result("supercomputing");
 index.add_result("supersaturates");
 ```
 
-4. This will generate an index of links for the strings as follows:
+5. This will generate an index of links for the strings as follows:
 
 ```mermaid
 flowchart LR
@@ -41,7 +51,7 @@ flowchart LR
     B --> J[ers] --> K[atu] --> L[supersaturates]
 ```
 
-5. Now you can search the index.
+6. Now you can search the index.
 ```rust
 index.get_results("sup", 10);
 // [
