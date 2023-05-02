@@ -51,7 +51,7 @@ flowchart LR
     B --> J[ers] --> K[atu] --> L[supersaturates]
 ```
 
-6. Now you can search the index.
+6. Now you can search the index using DFS.
 ```rust
 index.get_results("sup", 10);
 // [
@@ -79,10 +79,14 @@ let res2 = index.get_results("walrus", 10);
 // [ ]
 ```
 
-*Note that all strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically). Make sure to specify a "limit" to reduce the number of returned results.*
+**Note that all strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically). Make sure to specify a "limit" to reduce the number of returned results.**
 
 ## Todo
+- [ ] Cursor-based pagination (i.e. give me next 5 results after "supercomputer" for the search query "superduper")
+- [ ] Specify min depth to search the prefix index (i.e. for the query "supercomputer" min depth 0 would return all results, min depth 1 would return all results under 'prefix_index.sup', min depth 2 would return all results under 'prefix_index.sup.erc', etc.)
 - [ ] Custom Elements for typeahead search using prefix index 
+- [ ] Validation of index path components 3+ to fit expected structure (currently not possible with holochain validation of each indiviudal link and with links being Actions)
+- [ ] Private indexes (currently not possible with holochain links being Actions)
 
 ## Running the tests
 
