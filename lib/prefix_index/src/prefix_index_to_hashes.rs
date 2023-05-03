@@ -29,7 +29,7 @@ impl PrefixIndex {
         })
     }
 
-    pub fn add_result(&self, text: String) -> ExternResult<()> {
+    pub fn add_result(&self, text: String) -> ExternResult<TypedPath> {
         let typed_path = self.make_result_path(text.clone())?.typed(self.link_type)?;
 
         typed_path.ensure()?;
@@ -37,10 +37,10 @@ impl PrefixIndex {
         debug!(
             "Added result '{:?}' to path {:?}",
             text,
-            path_to_string(typed_path)
+            path_to_string(typed_path.clone())
         );
 
-        Ok(())
+        Ok(typed_path)
     }
 
     pub fn remove_result(&self, text: String) -> ExternResult<()> {
