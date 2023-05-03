@@ -15,12 +15,8 @@ pub fn validate_create_link_prefix_index(
     let tag_component = Component::try_from(tag_bytes).map_err(|e| wasm_error!(e))?;
     let tag_string = String::try_from(&tag_component).map_err(|e| wasm_error!(e))?;
 
-    warn!("tag string is {:?}", tag_string);
-
     // First Component: root hash -> index name
     let path: Path = Path::from(tag_string.clone());
-    warn!("path entry hash is {:?}", path.path_entry_hash()?);
-    warn!("target_address is {:?}", target_address);
 
     // first component
     if base_address == root_hash()? {
