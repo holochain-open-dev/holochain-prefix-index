@@ -1,5 +1,6 @@
 use hdk::{hash_path::path::Component, prelude::*};
 use crate::utils::*;
+use crate::validate::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
 pub struct PrefixIndex {
@@ -133,6 +134,21 @@ impl PrefixIndex {
             "{}.{}:{}#{}",
             self.index_name, self.width, self.depth, text
         )))
+    }
+
+    pub fn validate_create_link(
+        self,
+        action: CreateLink
+    ) -> ExternResult<ValidateCallbackResult> {
+        validate_create_link_prefix_index(action.clone(), action.base_address, action.target_address, action.tag, self)
+    }
+
+    pub fn validate_delete_link(
+        self,
+        action: DeleteLink,
+        original_action: CreateLink
+    ) -> ExternResult<ValidateCallbackResult> {
+        validate_delete_link_prefix_index(action.clone(), original_action.clone(), original_action.base_address, original_action.target_address, original_action.tag)
     }
 
     /// Gets the deepest-most Paths that descend from `path`, or it's parents, up to limit

@@ -1,7 +1,5 @@
 use hdi::prelude::*;
-use prefix_index::{
-    validate_create_link_prefix_index, validate_delete_link_prefix_index, PrefixIndex,
-};
+use prefix_index::PrefixIndex;
 
 pub const PREFIX_INDEX_A_NAME: &str = "prefix_index_a";
 pub const PREFIX_INDEX_A_WIDTH: usize = 3;
@@ -61,6 +59,27 @@ pub fn validate_agent_joining(
 // You can read more about validation here: https://docs.rs/hdi/latest/hdi/index.html#data-validation
 #[hdk_extern]
 pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
+    let prefix_index_a = PrefixIndex::new(
+        PREFIX_INDEX_A_NAME.into(),
+        LinkTypes::PrefixIndexA,
+        PREFIX_INDEX_A_WIDTH,
+        PREFIX_INDEX_A_DEPTH,
+    )?;
+
+    let prefix_index_b = PrefixIndex::new(
+        PREFIX_INDEX_B_NAME.into(),
+        LinkTypes::PrefixIndexB,
+        PREFIX_INDEX_B_WIDTH,
+        PREFIX_INDEX_B_DEPTH,
+    )?;
+
+    let prefix_index_c = PrefixIndex::new(
+        PREFIX_INDEX_C_NAME.into(),
+        LinkTypes::PrefixIndexC,
+        PREFIX_INDEX_C_WIDTH,
+        PREFIX_INDEX_C_DEPTH,
+    )?;
+
     match op.flattened::<(), LinkTypes>()? {
         FlatOp::StoreEntry(store_entry) => match store_entry {
             OpEntry::CreateEntry { app_entry, action } => Ok(ValidateCallbackResult::Invalid(
@@ -101,42 +120,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             tag,
             action,
         } => match link_type {
-            LinkTypes::PrefixIndexA => validate_create_link_prefix_index(
-                action,
-                base_address,
-                target_address,
-                tag,
-                PrefixIndex::new(
-                    PREFIX_INDEX_A_NAME.into(),
-                    LinkTypes::PrefixIndexA,
-                    PREFIX_INDEX_A_WIDTH,
-                    PREFIX_INDEX_A_DEPTH,
-                )?,
-            ),
-            LinkTypes::PrefixIndexB => validate_create_link_prefix_index(
-                action,
-                base_address,
-                target_address,
-                tag,
-                PrefixIndex::new(
-                    PREFIX_INDEX_B_NAME.into(),
-                    LinkTypes::PrefixIndexB,
-                    PREFIX_INDEX_B_WIDTH,
-                    PREFIX_INDEX_B_DEPTH,
-                )?,
-            ),
-            LinkTypes::PrefixIndexC => validate_create_link_prefix_index(
-                action,
-                base_address,
-                target_address,
-                tag,
-                PrefixIndex::new(
-                    PREFIX_INDEX_C_NAME.into(),
-                    LinkTypes::PrefixIndexC,
-                    PREFIX_INDEX_C_WIDTH,
-                    PREFIX_INDEX_C_DEPTH,
-                )?,
-            ),
+            LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
+            LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
+            LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
         },
         FlatOp::RegisterDeleteLink {
             link_type,
@@ -146,27 +132,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             original_action,
             action,
         } => match link_type {
-            LinkTypes::PrefixIndexA => validate_delete_link_prefix_index(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::PrefixIndexB => validate_delete_link_prefix_index(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::PrefixIndexC => validate_delete_link_prefix_index(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
+            LinkTypes::PrefixIndexA => prefix_index_a.validate_delete_link(action, original_action),
+            LinkTypes::PrefixIndexB => prefix_index_b.validate_delete_link(action, original_action),
+            LinkTypes::PrefixIndexC => prefix_index_c.validate_delete_link(action, original_action),
         },
         FlatOp::StoreRecord(store_record) => match store_record {
             // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
@@ -206,42 +174,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 link_type,
                 action,
             } => match link_type {
-                LinkTypes::PrefixIndexA => validate_create_link_prefix_index(
-                    action,
-                    base_address,
-                    target_address,
-                    tag,
-                    PrefixIndex::new(
-                        PREFIX_INDEX_A_NAME.into(),
-                        LinkTypes::PrefixIndexA,
-                        PREFIX_INDEX_A_WIDTH,
-                        PREFIX_INDEX_A_DEPTH,
-                    )?,
-                ),
-                LinkTypes::PrefixIndexB => validate_create_link_prefix_index(
-                    action,
-                    base_address,
-                    target_address,
-                    tag,
-                    PrefixIndex::new(
-                        PREFIX_INDEX_B_NAME.into(),
-                        LinkTypes::PrefixIndexB,
-                        PREFIX_INDEX_B_WIDTH,
-                        PREFIX_INDEX_B_DEPTH,
-                    )?,
-                ),
-                LinkTypes::PrefixIndexC => validate_create_link_prefix_index(
-                    action,
-                    base_address,
-                    target_address,
-                    tag,
-                    PrefixIndex::new(
-                        PREFIX_INDEX_C_NAME.into(),
-                        LinkTypes::PrefixIndexC,
-                        PREFIX_INDEX_C_WIDTH,
-                        PREFIX_INDEX_C_DEPTH,
-                    )?,
-                ),
+                LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
+                LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
+                LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
             },
             // Complementary validation to the `RegisterDeleteLink` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
@@ -269,27 +204,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     };
 
                 match link_type {
-                    LinkTypes::PrefixIndexA => validate_delete_link_prefix_index(
-                        action,
-                        create_link.clone(),
-                        base_address,
-                        create_link.target_address,
-                        create_link.tag,
-                    ),
-                    LinkTypes::PrefixIndexB => validate_delete_link_prefix_index(
-                        action,
-                        create_link.clone(),
-                        base_address,
-                        create_link.target_address,
-                        create_link.tag,
-                    ),
-                    LinkTypes::PrefixIndexC => validate_delete_link_prefix_index(
-                        action,
-                        create_link.clone(),
-                        base_address,
-                        create_link.target_address,
-                        create_link.tag,
-                    ),
+                    LinkTypes::PrefixIndexA => prefix_index_a.validate_delete_link(action, create_link.clone()),
+                    LinkTypes::PrefixIndexB => prefix_index_b.validate_delete_link(action, create_link.clone()),
+                    LinkTypes::PrefixIndexC => prefix_index_c.validate_delete_link(action, create_link.clone()),
                 }
             }
             OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
