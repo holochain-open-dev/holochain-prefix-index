@@ -551,3 +551,194 @@ test("remove result from index", async () => {
     { timeout: 100000 }
   );
 });
+
+
+test("add results with labels", async () => {
+  await runScenario(
+    async (scenario) => {
+      // Set up the app to be installed
+      const appSource = { appBundleSource: { path: "../workdir/prefix-index.happ"}};
+
+      // Add 2 players with the test app to the Scenario. The returned players
+      // can be destructured.
+      const [alice] = await scenario.addPlayersWithApps([appSource]);
+
+      // Shortcut peer discovery through gossip and register all agents in every
+      // conductor of the scenario.
+      await scenario.shareAllAgents();
+
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#superdupercool",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#superdupercrazy",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#supercomputing",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#supersaturates",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$supercomputing",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$supersaturates",
+      });
+
+
+      await pause(1000);
+
+
+      let results: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "sup",
+          limit: 10,
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "sup",
+          limit: 1,
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#supercomputing',
+      ]);
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "super",
+          limit: 10,
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+      assert.equal(results[0], '#supercomputing');
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "superdupe",
+          limit: 10
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+      assert.equal(results[0], '#superdupercool');
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "superdupercool",
+          limit: 10
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+      assert.equal(results[0], '#superdupercool');
+
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "superduperbad",
+          limit: 10
+        }
+      });
+      
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+      assert.equal(results[0], '#superdupercool');
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "supersaturday",
+          limit: 10
+        }
+      });
+      assert.sameMembers(results, [
+        '#superdupercool',
+        '#superdupercrazy',
+        '#supercomputing',
+        '#supersaturates',
+        '$supercomputing',
+        '$supersaturates',
+      ]);
+      assert.equal(results[0], '#supersaturates');
+
+      results = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "cow",
+          limit: 5
+        }
+      });
+      assert.lengthOf(results, 0);
+    },
+    true,
+    { timeout: 100000 }
+  );
+});

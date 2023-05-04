@@ -30,7 +30,15 @@ impl PrefixIndex {
     }
 
     pub fn add_result(&self, text: String) -> ExternResult<TypedPath> {
-        let typed_path = self.make_result_path(text.clone())?.typed(self.link_type)?;
+        self.inner_add_result(text, None)
+    }
+
+    pub fn add_result_with_label(&self, text: String, full_text: String) -> ExternResult<TypedPath> {
+        self.inner_add_result(text, Some(full_text))
+    }
+
+    fn inner_add_result(&self, text: String, full_text: Option<String>) -> ExternResult<TypedPath> {
+        let typed_path = self.make_result_path(text.clone(), full_text)?.typed(self.link_type)?;
 
         typed_path.ensure()?;
 
@@ -44,7 +52,15 @@ impl PrefixIndex {
     }
 
     pub fn remove_result(&self, text: String) -> ExternResult<()> {
-        let path = self.make_result_path(text.clone())?.typed(self.link_type)?;
+        self.inner_remove_result(text, None)
+    }
+
+    pub fn remove_result_with_label(&self, text: String, full_text: String) -> ExternResult<()> {
+        self.inner_remove_result(text, Some(full_text))
+    }
+
+    fn inner_remove_result(&self, text: String, full_text: Option<String>) -> ExternResult<()> {
+        let path = self.make_result_path(text.clone(), full_text)?.typed(self.link_type)?;
 
         self.inner_remove_result_from_path(path)?;
 
@@ -104,7 +120,7 @@ impl PrefixIndex {
         }
 
         let path = self
-            .make_result_path(query.clone())?
+            .make_result_path(query.clone(), None)?
             .typed(self.link_type)?;
 
         debug!(
@@ -129,11 +145,19 @@ impl PrefixIndex {
         Ok(strings)
     }
 
-    pub fn make_result_path(&self, text: String) -> ExternResult<Path> {
-        Ok(Path::from(format!(
+    /// Make a Path to the result following the ShardStrategy specified by PrefixIndex width + depth
+    pub fn make_result_path(&self, text: String, full_text: Option<String>) -> ExternResult<Path> {
+        let mut path_components = Path::from(format!(
             "{}.{}:{}#{}",
             self.index_name, self.width, self.depth, text
-        )))
+        )).as_ref().clone();
+        
+        if let Some(full_text_string) = full_text {
+            path_components.pop();
+            path_components.push(Component::from(full_text_string));
+        }
+
+        Ok(Path::from(path_components))
     }
 
     pub fn validate_create_link(
