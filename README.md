@@ -38,6 +38,8 @@ index.add_result("superdupercool");
 index.add_result("superdupercrazy");
 index.add_result("supercomputing");
 index.add_result("supersaturates");
+index.add_result("SUPERDUPER");
+
 ```
 
 5. This will generate an index of links for the strings as follows:
@@ -47,6 +49,7 @@ flowchart LR
     A[demo_index] --> B[sup]
     B --> C[erd] --> D[upe] --> E[superdupercool]
     D --> F[superdupercrazy]
+    D --> M[SUPERDUPER]
     B --> G[erc] --> H[omp] --> I[supercomputing]
     B --> J[ers] --> K[atu] --> L[supersaturates]
 ```
@@ -56,6 +59,7 @@ flowchart LR
 index.get_results("sup", 10);
 // [
 //   "supercomputing",
+//   "SUPERDUPER",
 //   "superdupercool",
 //   "superdupercrazy",
 //   "supersaturates",
@@ -63,6 +67,7 @@ index.get_results("sup", 10);
 
 let res2 = index.get_results("superduper", 10);
 // [
+//   "SUPERDUPER",
 //   "superdupercool",
 //   "superdupercrazy",
 //   "supercomputing",
@@ -71,6 +76,7 @@ let res2 = index.get_results("superduper", 10);
 
 let res2 = index.get_results("superduper", 2);
 // [
+//   "SUPERDUPER",
 //   "superdupercool",
 //   "superdupercrazy",
 // ]
@@ -79,7 +85,9 @@ let res2 = index.get_results("walrus", 10);
 // [ ]
 ```
 
-**Note that all strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically). Make sure to specify a "limit" to reduce the number of returned results.**
+All strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically), so make sure to specify a "limit" to reduce the number of returned results.
+
+Letter casing is *ignored* in the index, but is *preserved* in the results.
 
 ## Todo
 - [ ] Cursor-based pagination (i.e. give me next 5 results after "supercomputer" for the search query "superduper")
