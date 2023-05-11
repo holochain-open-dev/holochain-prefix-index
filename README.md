@@ -85,6 +85,8 @@ let res2 = index.get_results("walrus", 10);
 // [ ]
 ```
 
+## Gotchas
+
 All strings beneath the top-level prefix of your search query will be returned (ordered by similarity, then alphabetically), so make sure to specify a "limit" to reduce the number of returned results.
 
 Letter casing is *ignored* in the index, but is *preserved* in the results.
