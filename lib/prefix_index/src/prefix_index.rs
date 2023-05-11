@@ -149,14 +149,22 @@ impl PrefixIndex {
     pub fn make_result_path(&self, text: String, full_text: Option<String>) -> ExternResult<Path> {
         let mut path_components = Path::from(format!(
             "{}.{}:{}#{}",
-            self.index_name, self.width, self.depth, text
+            self.index_name, self.width, self.depth, text.to_lowercase()
         )).as_ref().clone();
         
-        if let Some(full_text_string) = full_text {
-            path_components.pop();
-            path_components.push(Component::from(full_text_string));
-        }
+        match full_text {
+            // Replace last component of path with full_text
+            Some(full_text_string) => {
+               path_components.pop();
+               path_components.push(Component::from(full_text_string));
+            },
 
+            // Replace last component of path with original text (preserve case)
+            None => {
+                path_components.pop();
+                path_components.push(Component::from(text));
+            }
+        }
         Ok(Path::from(path_components))
     }
 

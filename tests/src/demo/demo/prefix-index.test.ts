@@ -552,7 +552,6 @@ test("remove result from index", async () => {
   );
 });
 
-
 test("add results with labels", async () => {
   await runScenario(
     async (scenario) => {
@@ -741,4 +740,57 @@ test("add results with labels", async () => {
     true,
     { timeout: 100000 }
   );
+});
+
+
+
+
+test("preserve letter case in result, but ignore letter case in indexing", async () => {
+  await runScenario(
+    async (scenario) => {
+      // Set up the app to be installed
+      const appSource = { appBundleSource: { path: "../workdir/prefix-index.happ"}};
+
+      // Add 2 players with the test app to the Scenario. The returned players
+      // can be destructured.
+      const [alice] = await scenario.addPlayersWithApps([appSource]);
+
+      // Shortcut peer discovery through gossip and register all agents in every
+      // conductor of the scenario.
+      await scenario.shareAllAgents();
+
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#HOLOCHAIN",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#holosapian",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$HOLY",
+      });
+
+      await pause(1000);
+
+      let results: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "search_index_a",
+        payload: {
+          query: "holo",
+          limit: 5,
+        }
+      });
+
+      assert.sameMembers(results, [
+        '#HOLOCHAIN',
+        '#holosapian',
+        '$HOLY'
+      ]);
+    }
+  )
 });
