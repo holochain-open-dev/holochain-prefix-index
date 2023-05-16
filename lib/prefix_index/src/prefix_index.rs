@@ -1,6 +1,7 @@
 use hdk::{hash_path::path::Component, prelude::*};
 use crate::utils::*;
 use crate::validate::*;
+use rand::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
 pub struct PrefixIndex {
@@ -129,20 +130,19 @@ impl PrefixIndex {
             path_to_string(path.clone())
         );
 
-        let results = self.get_results_from_path(path, limit)?;
+        self.inner_get_results(path, limit, false)
+    }
 
-        let leafs: Vec<Component> = results
-            .into_iter()
-            .filter(|r| r.leaf().is_some())
-            .map(|p| p.leaf().unwrap().clone())
-            .collect();
+    pub fn get_random_results(&self, limit: usize) -> ExternResult<Vec<String>> {
+        if limit == 0 {
+            return Err(wasm_error!(WasmErrorInner::Guest(
+                "limit must be > 0".into()
+            )));
+        }
 
-        let strings = leafs
-            .into_iter()
-            .filter_map(|c| String::try_from(&c).ok())
-            .collect();
-
-        Ok(strings)
+        let base_path = Path::from(self.index_name.clone()).typed(self.link_type)?;
+        
+        self.inner_get_results(base_path, limit, true)
     }
 
     /// Make a Path to the result following the ShardStrategy specified by PrefixIndex width + depth
@@ -184,20 +184,43 @@ impl PrefixIndex {
     }
 
     /// Gets the deepest-most Paths that descend from `path`, or it's parents, up to limit
-    fn get_results_from_path(&self, path: TypedPath, limit: usize) -> ExternResult<Vec<TypedPath>> {
-        self.inner_get_results_from_path(path, limit, vec![], vec![])
+    fn get_results_from_path(&self, path: TypedPath, limit: usize, shuffle: bool) -> ExternResult<Vec<TypedPath>> {
+        self.inner_get_results_from_path(path, limit, shuffle, vec![], vec![])
+    }
+
+    fn inner_get_results(
+        &self,
+        path: TypedPath,
+        limit: usize,
+        shuffle: bool,
+    ) -> ExternResult<Vec<String>> {
+        let results = self.get_results_from_path(path, limit, shuffle)?;
+
+        let leafs: Vec<Component> = results
+            .into_iter()
+            .filter(|r| r.leaf().is_some())
+            .map(|p| p.leaf().unwrap().clone())
+            .collect();
+
+        let strings = leafs
+            .into_iter()
+            .filter_map(|c| String::try_from(&c).ok())
+            .collect();
+
+        Ok(strings)
     }
 
     fn inner_get_results_from_path(
         &self,
         path: TypedPath,
         limit: usize,
+        shuffle: bool,
         mut visited: Vec<TypedPath>,
         mut results: Vec<TypedPath>,
     ) -> ExternResult<Vec<TypedPath>> {
         visited.push(path.clone());
 
-        let children = get_children_paths(path.clone())?;
+        let mut children = get_children_paths(path.clone())?;
         match children.len() == 0 {
             true => {
                 if path.exists()? && !results.contains(&path) && results.len() < limit {
@@ -208,7 +231,7 @@ impl PrefixIndex {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
                             return self
-                                .inner_get_results_from_path(parent, limit, visited, results);
+                                .inner_get_results_from_path(parent, limit, shuffle, visited, results);
                         }
 
                         Ok(results)
@@ -217,11 +240,18 @@ impl PrefixIndex {
                 }
             }
             false => {
+                if shuffle {
+                    let mut rng = rand::thread_rng();
+                    let y: f64 = rng.gen();
+                    children.shuffle(&mut rng)
+                }
+
                 for child in children.into_iter() {
                     let grandchildren = self
                         .inner_get_results_from_path(
                             child.clone(),
                             limit,
+                            shuffle,
                             visited.clone(),
                             results.clone(),
                         )
@@ -241,7 +271,7 @@ impl PrefixIndex {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
                             return self
-                                .inner_get_results_from_path(parent, limit, visited, results);
+                                .inner_get_results_from_path(parent, limit, shuffle, visited, results);
                         }
 
                         Ok(results)
