@@ -742,9 +742,6 @@ test("add results with labels", async () => {
   );
 });
 
-
-
-
 test("preserve letter case in result, but ignore letter case in indexing", async () => {
   await runScenario(
     async (scenario) => {
@@ -791,6 +788,89 @@ test("preserve letter case in result, but ignore letter case in indexing", async
         '#holosapian',
         '$HOLY'
       ]);
+    }
+  )
+});
+
+test("get_random_results returns random results from prefix index", async () => {
+  await runScenario(
+    async (scenario) => {
+      // Set up the app to be installed
+      const appSource = { appBundleSource: { path: "../workdir/prefix-index.happ"}};
+
+      // Add 2 players with the test app to the Scenario. The returned players
+      // can be destructured.
+      const [alice] = await scenario.addPlayersWithApps([appSource]);
+
+      // Shortcut peer discovery through gossip and register all agents in every
+      // conductor of the scenario.
+      await scenario.shareAllAgents();
+
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#HOLOCHAIN",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#holosapian",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$HOLY",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$CAT",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_cashtag_to_index_a",
+        payload: "$DOGGO",
+      });
+      await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "add_hashtag_to_index_a",
+        payload: "#monkeys",
+      });
+
+      await pause(1000);
+
+      const [ result1 ]: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "get_random_results_index_a",
+        payload:  1
+      });
+
+      const [ result2 ]: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "get_random_results_index_a",
+        payload:  1
+      });
+
+      const [ result3 ]: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "get_random_results_index_a",
+        payload:  1
+      });
+
+      const [ result4 ]: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "get_random_results_index_a",
+        payload:  1
+      });
+
+      const [ result5 ]: string[] = await alice.cells[0].callZome({
+        zome_name: "demo",
+        fn_name: "get_random_results_index_a",
+        payload:  1
+      });
+
+      // Assert we did not get the exact same result 5 times
+      assert.ok(new Set([result1, result2, result3, result4, result5]).size > 1);
     }
   )
 });

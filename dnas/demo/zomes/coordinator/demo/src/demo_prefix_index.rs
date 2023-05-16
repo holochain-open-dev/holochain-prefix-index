@@ -48,6 +48,18 @@ pub fn search_index_a(input: SearchIndexInput) -> ExternResult<Vec<String>> {
 }
 
 #[hdk_extern]
+pub fn get_random_results_index_a(limit: usize) -> ExternResult<Vec<String>> {
+    let index = PrefixIndex::new(
+        PREFIX_INDEX_A_NAME.into(),
+        LinkTypes::PrefixIndexA,
+        PREFIX_INDEX_A_WIDTH,
+        PREFIX_INDEX_A_DEPTH,
+    )?;
+
+    index.get_random_results(limit)
+}
+
+#[hdk_extern]
 pub fn add_to_index_b(text: String) -> ExternResult<()> {
     let index = PrefixIndex::new(
         PREFIX_INDEX_B_NAME.into(),
