@@ -85,13 +85,22 @@ impl PrefixIndex {
                 let result_children: Vec<Link> = children
                     .clone()
                     .into_iter()
-                    .filter(|c| EntryHash::from(c.clone().target) == path_entry_hash)
+                    .filter(|c| -> bool {
+                        let maybe_eh = c.clone().target.into_entry_hash();
+                        match maybe_eh {
+                            Some(eh) => eh == path_entry_hash,
+                            None => false
+                        }
+                    })
                     .collect();
 
                 // Delete children link corresponding to current path
                 for child in result_children.clone().into_iter() {
-                    if EntryHash::from(child.target) == path.path_entry_hash()? {
-                        delete_link(child.create_link_hash)?;
+                    let maybe_eh = child.target.into_entry_hash();
+                    if let Some(eh) = maybe_eh {
+                        if eh == path.path_entry_hash()? {
+                            delete_link(child.create_link_hash)?;
+                        }
                     }
                 }
 

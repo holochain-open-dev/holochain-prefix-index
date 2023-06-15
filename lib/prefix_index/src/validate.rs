@@ -18,25 +18,35 @@ pub fn validate_create_link_prefix_index(
     // First Component: root hash -> index name
     let path: Path = Path::from(tag_string.clone());
 
+    // Target is an entry hash
+    let maybe_target_entryhash = target_address.clone().into_entry_hash();
+    if let None = maybe_target_entryhash {
+        return Ok(ValidateCallbackResult::Invalid(
+            "PrefixIndex first component: target address must be entry hash".into(),
+        ))
+    }
+
     // first component
     if base_address == root_hash()? {
-        if EntryHash::from(target_address.clone()) != path.path_entry_hash()? {
-            return Ok(ValidateCallbackResult::Invalid(
-                "PrefixIndex first component: target address must be index name".into(),
-            ));
-        }
-        if tag_string != prefix_index.index_name {
-            return Ok(ValidateCallbackResult::Invalid(
-                "PrefixIndex first component: tag string must be index name".into(),
-            ));
+        if let Some(eh) = maybe_target_entryhash {
+            if eh != path.path_entry_hash()? {
+                return Ok(ValidateCallbackResult::Invalid(
+                    "PrefixIndex first component: target address must be index name".into(),
+                ));
+            }
+            if tag_string != prefix_index.index_name {
+                return Ok(ValidateCallbackResult::Invalid(
+                    "PrefixIndex first component: tag string must be index name".into(),
+                ));
+            }
         }
     }
     // second component
-    else if EntryHash::from(base_address)
-        == Path::from(prefix_index.index_name.clone()).path_entry_hash()?
-    {
-        if tag_string.chars().count() != prefix_index.width {
-            return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
+    else if let Some(eh) = base_address.into_entry_hash() {
+        if eh == Path::from(prefix_index.index_name.clone()).path_entry_hash()? {
+            if tag_string.chars().count() != prefix_index.width {
+                return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
+            }
         }
     }
     // third or later component

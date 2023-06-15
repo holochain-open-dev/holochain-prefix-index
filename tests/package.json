@@ -2,12 +2,12 @@
   "name": "tests",
   "private": true,
   "scripts": {
-    "test": "vitest run"
+    "test": "TRYORAMA_LOG_LEVEL=debug vitest run"
   },
   "dependencies": {
     "@msgpack/msgpack": "^2.7.0",
-    "@holochain/client": "^0.12.2",
-    "@holochain/tryorama": "^0.11.0",
+    "@holochain/client": "^0.14.1",
+    "@holochain/tryorama": "^0.14.0-rc.0",
     "typescript": "^4.9.4",
     "vitest": "^0.28.4"
   },

@@ -4,22 +4,28 @@ import { assert, test } from "vitest";
 test("search prefix index with width=3, depth=3", async () => {
   await runScenario(
     async (scenario) => {
+      console.log('running scenario')
       // Set up the app to be installed
-      const appSource = { appBundleSource: { path: "../workdir/prefix-index.happ"}};
-
+      const appSource = { path: "../workdir/prefix-index.happ"};
+      console.log('app source is', appSource);
+      console.log('sceneario condoutros is', scenario)
       // Add 2 players with the test app to the Scenario. The returned players
       // can be destructured.
-      const [alice] = await scenario.addPlayersWithApps([appSource]);
-
+      const alice = await scenario.addPlayerWithApp(appSource);
+      console.log('added player with app', alice);
       // Shortcut peer discovery through gossip and register all agents in every
       // conductor of the scenario.
       await scenario.shareAllAgents();
+      console.log('shared agents');
+
 
       await alice.cells[0].callZome({
         zome_name: "demo",
         fn_name: "add_to_index_a",
         payload: "superdupercool",
       });
+      console.log('called zome');
+
       await alice.cells[0].callZome({
         zome_name: "demo",
         fn_name: "add_to_index_a",
@@ -164,7 +170,7 @@ test("search prefix index with width=3, depth=3", async () => {
       assert.lengthOf(results, 0);
     },
     true,
-    { timeout: 100000 }
+    { timeout: 30000 }
   );
 });
 
