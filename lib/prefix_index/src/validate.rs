@@ -22,10 +22,9 @@ pub fn validate_create_link_prefix_index(
     let path_entry_hash = path.path_entry_hash()?;
     let prefix_index_entry_hash = Path::from(prefix_index.index_name.clone()).path_entry_hash()?;
     if base_address == root_hash()? {
-        if target_address
-            .try_into()
-            .is_ok_and(|target_entry_hash: EntryHash| target_entry_hash != path_entry_hash)
-        {
+        let target_entry_hash =
+            EntryHash::try_from(target_address).map_err(|err| wasm_error!(err))?;
+        if target_entry_hash != path_entry_hash {
             return Ok(ValidateCallbackResult::Invalid(
                 "PrefixIndex first component: target address must be index name".into(),
             ));
@@ -37,12 +36,10 @@ pub fn validate_create_link_prefix_index(
         }
     }
     // second component
-    else if base_address
-        .try_into()
-        .is_ok_and(|base_address_entry_hash: EntryHash| {
-            base_address_entry_hash == prefix_index_entry_hash
-        })
-    {
+    else if EntryHash::try_from(base_address).ok().map_or_else(
+        || false,
+        |base_address_entry_hash| base_address_entry_hash == prefix_index_entry_hash,
+    ) {
         if tag_string.chars().count() != prefix_index.width {
             return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
         }
