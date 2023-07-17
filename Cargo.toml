@@ -9,7 +9,7 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "lib/*"]
 
 [workspace.dependencies]
 hdi = "=0.4.0-beta-dev.5"
-hdk = "=0.3.0-beta-dev.7"
+hdk = "=0.3.0-beta-dev.8"
 holochain_integrity_types = "=0.3.0-beta-dev.5"
 serde = "1"
 
