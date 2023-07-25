@@ -68,7 +68,7 @@ impl PrefixIndex {
 
     fn inner_remove_result(&self, text: String, full_text: Option<String>) -> ExternResult<()> {
         let path = self
-            .make_result_path(text.clone(), full_text)?
+            .make_result_path(text, full_text)?
             .typed(self.link_type)?;
 
         self.inner_remove_result_from_path(path)?;
@@ -110,14 +110,14 @@ impl PrefixIndex {
 
                 // Get other children of parent of path
                 let mut other_children = vec![];
-                for i in children.clone().into_iter() {
+                for i in children.into_iter() {
                     if !result_children.contains(&i) {
                         other_children.push(i);
                     }
                 }
 
                 // If there are no other children of parent of path, delete parent of path
-                if other_children.len() == 0 && !parent.is_root() {
+                if other_children.is_empty() && !parent.is_root() {
                     self.inner_remove_result_from_path(parent)?;
                 }
             }
@@ -202,7 +202,7 @@ impl PrefixIndex {
         original_action: CreateLink,
     ) -> ExternResult<ValidateCallbackResult> {
         validate_delete_link_prefix_index(
-            action.clone(),
+            action,
             original_action.clone(),
             original_action.base_address,
             original_action.target_address,
@@ -228,20 +228,17 @@ impl PrefixIndex {
     ) -> ExternResult<Vec<String>> {
         let results = self.get_results_from_path(path, limit, shuffle)?;
 
-        let leafs: Vec<Component> = results
+        let strings: Vec<String> = results
             .into_iter()
             .filter(|r| r.leaf().is_some())
             .map(|p| p.leaf().unwrap().clone())
-            .collect();
-
-        let strings = leafs
-            .into_iter()
             .filter_map(|c| String::try_from(&c).ok())
             .collect();
 
         Ok(strings)
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn inner_get_results_from_path(
         &self,
         path: TypedPath,
@@ -253,7 +250,7 @@ impl PrefixIndex {
         visited.push(path.clone());
 
         let mut children = get_children_paths(path.clone())?;
-        match children.len() == 0 {
+        match children.is_empty() {
             true => {
                 if path.exists()? && !results.contains(&path) && results.len() < limit {
                     results.push(path.clone());
@@ -287,7 +284,7 @@ impl PrefixIndex {
                             visited.clone(),
                             results.clone(),
                         )
-                        .unwrap_or(vec![]);
+                        .unwrap_or_default();
 
                     for grandchild in grandchildren.into_iter() {
                         if grandchild.exists()?

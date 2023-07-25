@@ -39,11 +39,11 @@ pub fn validate_create_link_prefix_index(
     else if EntryHash::try_from(base_address).ok().map_or_else(
         || false,
         |base_address_entry_hash| base_address_entry_hash == prefix_index_entry_hash,
-    ) {
-        if tag_string.chars().count() != prefix_index.width {
-            return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
-        }
+    ) && tag_string.chars().count() != prefix_index.width
+    {
+        return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
     }
+
     // third or later component
     // unable to validate since we don't have any way of getting the previous links in the path
     //  (we can't assume this link author is also the previous link author, so we can't use must_get_agent_activity)
