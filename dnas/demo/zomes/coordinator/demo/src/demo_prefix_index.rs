@@ -142,11 +142,7 @@ pub fn remove_hashtag_from_index_a(hashtag: String) -> ExternResult<()> {
 }
 
 fn make_hashtag_index_text(text: String) -> String {
-    text
-        .split('#')
-        .nth(1)
-        .unwrap_or(&text)
-        .to_string()
+    text.split('#').nth(1).unwrap_or(&text).to_string()
 }
 
 #[hdk_extern]
@@ -180,9 +176,5 @@ pub fn remove_cashtag_from_index_a(cashtag: String) -> ExternResult<()> {
 }
 
 fn make_cashtag_index_text(text: String) -> String {
-    text
-        .split('$')
-        .nth(1)
-        .unwrap_or(&text)
-        .to_string()
+    text.split('$').nth(1).unwrap_or(&text).to_string()
 }

@@ -4,7 +4,7 @@ use hdk::hash_path::path::{root_hash, Component};
 use hdk::prelude::*;
 
 pub fn validate_create_link_prefix_index(
-    action: CreateLink,
+    _action: CreateLink,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     tag: LinkTag,
@@ -19,8 +19,12 @@ pub fn validate_create_link_prefix_index(
     let path: Path = Path::from(tag_string.clone());
 
     // first component
+    let path_entry_hash = path.path_entry_hash()?;
+    let prefix_index_entry_hash = Path::from(prefix_index.index_name.clone()).path_entry_hash()?;
     if base_address == root_hash()? {
-        if EntryHash::from(target_address.clone()) != path.path_entry_hash()? {
+        let target_entry_hash =
+            EntryHash::try_from(target_address).map_err(|err| wasm_error!(err))?;
+        if target_entry_hash != path_entry_hash {
             return Ok(ValidateCallbackResult::Invalid(
                 "PrefixIndex first component: target address must be index name".into(),
             ));
@@ -32,13 +36,14 @@ pub fn validate_create_link_prefix_index(
         }
     }
     // second component
-    else if EntryHash::from(base_address)
-        == Path::from(prefix_index.index_name.clone()).path_entry_hash()?
+    else if EntryHash::try_from(base_address).ok().map_or_else(
+        || false,
+        |base_address_entry_hash| base_address_entry_hash == prefix_index_entry_hash,
+    ) && tag_string.chars().count() != prefix_index.width
     {
-        if tag_string.chars().count() != prefix_index.width {
-            return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
-        }
+        return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
     }
+
     // third or later component
     // unable to validate since we don't have any way of getting the previous links in the path
     //  (we can't assume this link author is also the previous link author, so we can't use must_get_agent_activity)
