@@ -9,7 +9,6 @@ name = "demo_integrity"
 
 [dependencies]
 hdi = { workspace = true }
-holochain_integrity_types = { workspace = true }
 
 serde = { workspace = true }
 prefix_index = { workspace = true }
