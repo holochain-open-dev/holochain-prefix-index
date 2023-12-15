@@ -25,6 +25,6 @@ pub fn post_commit(committed_actions: Vec<SignedActionHashed>) {
 }
 
 /// Don't modify this function if you want the scaffolding tool to generate appropriate signals for your entries and links
-fn signal_action(action: SignedActionHashed) -> ExternResult<()> {
+fn signal_action(_action: SignedActionHashed) -> ExternResult<()> {
     Ok(())
 }

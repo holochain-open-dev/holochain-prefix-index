@@ -82,11 +82,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
 
     match op.flattened::<(), LinkTypes>()? {
         FlatOp::StoreEntry(store_entry) => match store_entry {
-            OpEntry::CreateEntry { app_entry, action } => Ok(ValidateCallbackResult::Invalid(
+            OpEntry::CreateEntry { app_entry: _, action: _ } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             OpEntry::UpdateEntry {
-                app_entry, action, ..
+                  ..
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
@@ -94,10 +94,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::RegisterUpdate(update_entry) => match update_entry {
             OpUpdate::Entry {
-                original_action,
-                original_app_entry,
-                app_entry,
-                action,
+                original_action: _,
+                original_app_entry: _,
+                app_entry: _,
+                action: _,
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
@@ -105,9 +105,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::RegisterDelete(delete_entry) => match delete_entry {
             OpDelete::Entry {
-                original_action,
-                original_app_entry,
-                action,
+                original_action: _,
+                original_app_entry: _,
+                action: _,
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
@@ -115,9 +115,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::RegisterCreateLink {
             link_type,
-            base_address,
-            target_address,
-            tag,
+            base_address: _,
+            target_address: _,
+            tag: _,
             action,
         } => match link_type {
             LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
@@ -126,9 +126,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::RegisterDeleteLink {
             link_type,
-            base_address,
-            target_address,
-            tag,
+            base_address: _,
+            target_address: _,
+            tag: _,
             original_action,
             action,
         } => match link_type {
@@ -140,16 +140,16 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
-            OpRecord::CreateEntry { app_entry, action } => Ok(ValidateCallbackResult::Invalid(
+            OpRecord::CreateEntry { app_entry: _, action: _ } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry` and in `RegisterUpdate`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the other validations failed
             OpRecord::UpdateEntry {
-                original_action_hash,
-                app_entry,
-                action,
+                
+                
+                
                 ..
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
@@ -158,8 +158,8 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDelete`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDelete` validation failed
             OpRecord::DeleteEntry {
-                original_action_hash,
-                action,
+                
+                
                 ..
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
@@ -168,9 +168,9 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterCreateLink`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterCreateLink` validation failed
             OpRecord::CreateLink {
-                base_address,
-                target_address,
-                tag,
+                base_address: _,
+                target_address: _,
+                tag: _,
                 link_type,
                 action,
             } => match link_type {
@@ -183,7 +183,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDeleteLink` validation failed
             OpRecord::DeleteLink {
                 original_action_hash,
-                base_address,
+                base_address: _,
                 action,
             } => {
                 let record = must_get_valid_record(original_action_hash)?;
@@ -204,9 +204,15 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     };
 
                 match link_type {
-                    LinkTypes::PrefixIndexA => prefix_index_a.validate_delete_link(action, create_link.clone()),
-                    LinkTypes::PrefixIndexB => prefix_index_b.validate_delete_link(action, create_link.clone()),
-                    LinkTypes::PrefixIndexC => prefix_index_c.validate_delete_link(action, create_link.clone()),
+                    LinkTypes::PrefixIndexA => {
+                        prefix_index_a.validate_delete_link(action, create_link)
+                    }
+                    LinkTypes::PrefixIndexB => {
+                        prefix_index_b.validate_delete_link(action, create_link)
+                    }
+                    LinkTypes::PrefixIndexC => {
+                        prefix_index_c.validate_delete_link(action, create_link)
+                    }
                 }
             }
             OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),

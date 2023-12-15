@@ -4,7 +4,7 @@ use hdk::hash_path::path::{root_hash, Component};
 use hdk::prelude::*;
 
 pub fn validate_create_link_prefix_index(
-    action: CreateLink,
+    _action: CreateLink,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     tag: LinkTag,
@@ -19,11 +19,11 @@ pub fn validate_create_link_prefix_index(
     let path: Path = Path::from(tag_string.clone());
 
     // Target is an entry hash
-    let maybe_target_entryhash = target_address.clone().into_entry_hash();
-    if let None = maybe_target_entryhash {
+    let maybe_target_entryhash = target_address.into_entry_hash();
+    if maybe_target_entryhash.is_none() {
         return Ok(ValidateCallbackResult::Invalid(
             "PrefixIndex first component: target address must be entry hash".into(),
-        ))
+        ));
     }
 
     // first component
@@ -43,10 +43,8 @@ pub fn validate_create_link_prefix_index(
     }
     // second component
     else if let Some(eh) = base_address.into_entry_hash() {
-        if eh == Path::from(prefix_index.index_name.clone()).path_entry_hash()? {
-            if tag_string.chars().count() != prefix_index.width {
-                return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
-            }
+        if eh == Path::from(prefix_index.index_name.clone()).path_entry_hash()? && tag_string.chars().count() != prefix_index.width {
+            return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
         }
     }
     // third or later component

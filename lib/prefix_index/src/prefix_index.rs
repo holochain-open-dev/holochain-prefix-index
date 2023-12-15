@@ -1,6 +1,6 @@
-use hdk::{hash_path::path::Component, prelude::*};
 use crate::utils::*;
 use crate::validate::*;
+use hdk::{hash_path::path::Component, prelude::*};
 use rand::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
@@ -34,12 +34,18 @@ impl PrefixIndex {
         self.inner_add_result(text, None)
     }
 
-    pub fn add_result_with_label(&self, text: String, full_text: String) -> ExternResult<TypedPath> {
+    pub fn add_result_with_label(
+        &self,
+        text: String,
+        full_text: String,
+    ) -> ExternResult<TypedPath> {
         self.inner_add_result(text, Some(full_text))
     }
 
     fn inner_add_result(&self, text: String, full_text: Option<String>) -> ExternResult<TypedPath> {
-        let typed_path = self.make_result_path(text.clone(), full_text)?.typed(self.link_type)?;
+        let typed_path = self
+            .make_result_path(text.clone(), full_text)?
+            .typed(self.link_type)?;
 
         typed_path.ensure()?;
 
@@ -61,7 +67,9 @@ impl PrefixIndex {
     }
 
     fn inner_remove_result(&self, text: String, full_text: Option<String>) -> ExternResult<()> {
-        let path = self.make_result_path(text.clone(), full_text)?.typed(self.link_type)?;
+        let path = self
+            .make_result_path(text, full_text)?
+            .typed(self.link_type)?;
 
         self.inner_remove_result_from_path(path)?;
 
@@ -89,7 +97,7 @@ impl PrefixIndex {
                         let maybe_eh = c.clone().target.into_entry_hash();
                         match maybe_eh {
                             Some(eh) => eh == path_entry_hash,
-                            None => false
+                            None => false,
                         }
                     })
                     .collect();
@@ -106,14 +114,14 @@ impl PrefixIndex {
 
                 // Get other children of parent of path
                 let mut other_children = vec![];
-                for i in children.clone().into_iter() {
+                for i in children.into_iter() {
                     if !result_children.contains(&i) {
                         other_children.push(i);
                     }
                 }
 
                 // If there are no other children of parent of path, delete parent of path
-                if other_children.len() == 0 && !parent.is_root() {
+                if other_children.is_empty() && !parent.is_root() {
                     self.inner_remove_result_from_path(parent)?;
                 }
             }
@@ -150,7 +158,7 @@ impl PrefixIndex {
         }
 
         let base_path = Path::from(self.index_name.clone()).typed(self.link_type)?;
-        
+
         self.inner_get_results(base_path, limit, true)
     }
 
@@ -158,15 +166,20 @@ impl PrefixIndex {
     pub fn make_result_path(&self, text: String, full_text: Option<String>) -> ExternResult<Path> {
         let mut path_components = Path::from(format!(
             "{}.{}:{}#{}",
-            self.index_name, self.width, self.depth, text.to_lowercase()
-        )).as_ref().clone();
-        
+            self.index_name,
+            self.width,
+            self.depth,
+            text.to_lowercase()
+        ))
+        .as_ref()
+        .clone();
+
         match full_text {
             // Replace last component of path with full_text
             Some(full_text_string) => {
-               path_components.pop();
-               path_components.push(Component::from(full_text_string));
-            },
+                path_components.pop();
+                path_components.push(Component::from(full_text_string));
+            }
 
             // Replace last component of path with original text (preserve case)
             None => {
@@ -177,23 +190,37 @@ impl PrefixIndex {
         Ok(Path::from(path_components))
     }
 
-    pub fn validate_create_link(
-        self,
-        action: CreateLink
-    ) -> ExternResult<ValidateCallbackResult> {
-        validate_create_link_prefix_index(action.clone(), action.base_address, action.target_address, action.tag, self)
+    pub fn validate_create_link(self, action: CreateLink) -> ExternResult<ValidateCallbackResult> {
+        validate_create_link_prefix_index(
+            action.clone(),
+            action.base_address,
+            action.target_address,
+            action.tag,
+            self,
+        )
     }
 
     pub fn validate_delete_link(
         self,
         action: DeleteLink,
-        original_action: CreateLink
+        original_action: CreateLink,
     ) -> ExternResult<ValidateCallbackResult> {
-        validate_delete_link_prefix_index(action.clone(), original_action.clone(), original_action.base_address, original_action.target_address, original_action.tag)
+        validate_delete_link_prefix_index(
+            action,
+            original_action.clone(),
+            original_action.base_address,
+            original_action.target_address,
+            original_action.tag,
+        )
     }
 
     /// Gets the deepest-most Paths that descend from `path`, or it's parents, up to limit
-    fn get_results_from_path(&self, path: TypedPath, limit: usize, shuffle: bool) -> ExternResult<Vec<TypedPath>> {
+    fn get_results_from_path(
+        &self,
+        path: TypedPath,
+        limit: usize,
+        shuffle: bool,
+    ) -> ExternResult<Vec<TypedPath>> {
         self.inner_get_results_from_path(path, limit, shuffle, vec![], vec![])
     }
 
@@ -205,18 +232,14 @@ impl PrefixIndex {
     ) -> ExternResult<Vec<String>> {
         let results = self.get_results_from_path(path, limit, shuffle)?;
 
-        let leafs: Vec<Component> = results
+        let leaf_strings: Vec<String> = results
             .into_iter()
             .filter(|r| r.leaf().is_some())
             .map(|p| p.leaf().unwrap().clone())
-            .collect();
-
-        let strings = leafs
-            .into_iter()
             .filter_map(|c| String::try_from(&c).ok())
             .collect();
 
-        Ok(strings)
+        Ok(leaf_strings)
     }
 
     fn inner_get_results_from_path(
@@ -230,7 +253,7 @@ impl PrefixIndex {
         visited.push(path.clone());
 
         let mut children = get_children_paths(path.clone())?;
-        match children.len() == 0 {
+        match children.is_empty() {
             true => {
                 if path.exists()? && !results.contains(&path) && results.len() < limit {
                     results.push(path.clone());
@@ -239,8 +262,9 @@ impl PrefixIndex {
                 match path.parent() {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
-                            return self
-                                .inner_get_results_from_path(parent, limit, shuffle, visited, results);
+                            return self.inner_get_results_from_path(
+                                parent, limit, shuffle, visited, results,
+                            );
                         }
 
                         Ok(results)
@@ -251,7 +275,7 @@ impl PrefixIndex {
             false => {
                 if shuffle {
                     let mut rng = rand::thread_rng();
-                    let y: f64 = rng.gen();
+                    let _y: f64 = rng.gen();
                     children.shuffle(&mut rng)
                 }
 
@@ -264,7 +288,7 @@ impl PrefixIndex {
                             visited.clone(),
                             results.clone(),
                         )
-                        .unwrap_or(vec![]);
+                        .unwrap_or_default();
 
                     for grandchild in grandchildren.into_iter() {
                         if grandchild.exists()?
@@ -279,8 +303,9 @@ impl PrefixIndex {
                 match path.parent() {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
-                            return self
-                                .inner_get_results_from_path(parent, limit, shuffle, visited, results);
+                            return self.inner_get_results_from_path(
+                                parent, limit, shuffle, visited, results,
+                            );
                         }
 
                         Ok(results)
