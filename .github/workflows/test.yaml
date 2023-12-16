@@ -1,30 +1,68 @@
-name: "test"
+name: CI
+
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the main branch
-  push: 
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+  push:
+    branches:
+      - "develop"
+      - "main"
+
+concurrency:
+  group: ${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
-  testbuild:
-    runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install nix
-        uses: cachix/install-nix-action@v18
-        with:
-          install_url: https://releases.nixos.org/nix/nix-2.12.0/install
-          extra_nix_config: |
-            experimental-features = flakes nix-command
+        uses: cachix/install-nix-action@v22
 
-      - uses: cachix/cachix-action@v10
+      - name: Set up cachix
+        uses: cachix/cachix-action@v12
         with:
           name: holochain-ci
 
-      - name: Install and test
-        run: |
-          nix develop --command bash -c "npm i && npm run test"
+      - name: Restore cargo and build from cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            .cargo
+            target
+          key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
+      - name: Install nix packages
+        run: nix develop -c $SHELL -c "echo Nix packages installed"
+
+      - name: Install JS packages
+        run: nix develop -c $SHELL -c "npm ci"
+
+      - name: Clippy
+        run: nix develop -c $SHELL -c "cargo clippy"
+
+      - name: Check rust formatting
+        run: nix develop -c $SHELL -c "cargo fmt"
+
+      - name: Build Happ
+        run: nix develop -c $SHELL -c "npm run build:happ"
+
+      - name: Save cargo and build to cache
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            .cargo
+            target
+          key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
+
+      - name: Test
+        run: nix develop -c $SHELL -c "npm run test"

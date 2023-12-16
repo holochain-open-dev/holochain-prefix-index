@@ -43,7 +43,9 @@ pub fn validate_create_link_prefix_index(
     }
     // second component
     else if let Some(eh) = base_address.into_entry_hash() {
-        if eh == Path::from(prefix_index.index_name.clone()).path_entry_hash()? && tag_string.chars().count() != prefix_index.width {
+        if eh == Path::from(prefix_index.index_name.clone()).path_entry_hash()?
+            && tag_string.chars().count() != prefix_index.width
+        {
             return Ok(ValidateCallbackResult::Invalid("PrefixIndex second component: tag string must have same number of chars as prefix index width".into()));
         }
     }

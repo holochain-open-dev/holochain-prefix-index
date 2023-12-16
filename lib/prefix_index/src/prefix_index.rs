@@ -142,7 +142,7 @@ impl PrefixIndex {
             .typed(self.link_type)?;
 
         debug!(
-            "Searching for '{:?}', staring at path '{:?}'",
+            "Searching for '{:?}', starting at path '{:?}'",
             query,
             path_to_string(path.clone())
         );
@@ -242,6 +242,7 @@ impl PrefixIndex {
         Ok(leaf_strings)
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn inner_get_results_from_path(
         &self,
         path: TypedPath,
@@ -275,7 +276,6 @@ impl PrefixIndex {
             false => {
                 if shuffle {
                     let mut rng = rand::thread_rng();
-                    let _y: f64 = rng.gen();
                     children.shuffle(&mut rng)
                 }
 

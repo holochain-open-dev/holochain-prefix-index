@@ -82,12 +82,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
 
     match op.flattened::<(), LinkTypes>()? {
         FlatOp::StoreEntry(store_entry) => match store_entry {
-            OpEntry::CreateEntry { app_entry: _, action: _ } => Ok(ValidateCallbackResult::Invalid(
+            OpEntry::CreateEntry {
+                app_entry: _,
+                action: _,
+            } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
-            OpEntry::UpdateEntry {
-                  ..
-            } => Ok(ValidateCallbackResult::Invalid(
+            OpEntry::UpdateEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             _ => Ok(ValidateCallbackResult::Valid),
@@ -140,28 +141,22 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
-            OpRecord::CreateEntry { app_entry: _, action: _ } => Ok(ValidateCallbackResult::Invalid(
+            OpRecord::CreateEntry {
+                app_entry: _,
+                action: _,
+            } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry` and in `RegisterUpdate`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the other validations failed
-            OpRecord::UpdateEntry {
-                
-                
-                
-                ..
-            } => Ok(ValidateCallbackResult::Invalid(
+            OpRecord::UpdateEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             // Complementary validation to the `RegisterDelete` Op, in which the record itself is validated
             // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDelete`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDelete` validation failed
-            OpRecord::DeleteEntry {
-                
-                
-                ..
-            } => Ok(ValidateCallbackResult::Invalid(
+            OpRecord::DeleteEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
             // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
