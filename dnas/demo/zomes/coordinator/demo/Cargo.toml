@@ -9,8 +9,13 @@ name = "demo"
 
 [dependencies]
 hdk = { workspace = true }
-
 serde = { workspace = true }
-
-demo_integrity = { workspace = true } 
+demo_integrity = { workspace = true }
 prefix_index = { workspace = true }
+
+[dev-dependencies]
+hdk = { workspace = true, features = ["encoding", "test_utils"] }
+holochain = { workspace = true, default-features = false, features = [
+  "test_utils",
+] }
+tokio = { workspace = true }

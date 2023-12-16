@@ -1,6 +1,6 @@
 ---
 manifest_version: "1"
-name: prefix-index
+name: demo
 description: ~
 roles:
   - name: demo

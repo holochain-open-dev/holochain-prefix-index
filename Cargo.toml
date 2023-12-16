@@ -6,11 +6,14 @@ opt-level = "z"
 
 [workspace]
 members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "lib/*"]
+resolver = "2"
 
 [workspace.dependencies]
 hdi = "=0.3.4"
 hdk = "=0.2.4"
 serde = "=1.0.166"
+holochain = "=0.2.4"
+tokio = { version = "1.27", features = ["full"] }
 
 [workspace.dependencies.demo]
 path = "dnas/demo/zomes/coordinator/demo"
