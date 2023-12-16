@@ -1,5 +1,5 @@
+use hc_prefix_index::PrefixIndex;
 use hdi::prelude::*;
-use prefix_index::PrefixIndex;
 
 pub const PREFIX_INDEX_A_NAME: &str = "prefix_index_a";
 pub const PREFIX_INDEX_A_WIDTH: usize = 3;

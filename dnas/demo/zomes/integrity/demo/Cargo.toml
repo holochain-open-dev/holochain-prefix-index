@@ -9,6 +9,5 @@ name = "demo_integrity"
 
 [dependencies]
 hdi = { workspace = true }
-
 serde = { workspace = true }
-prefix_index = { workspace = true }
+hc_prefix_index = { workspace = true }
