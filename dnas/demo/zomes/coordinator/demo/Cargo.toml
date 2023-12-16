@@ -15,7 +15,5 @@ prefix_index = { workspace = true }
 
 [dev-dependencies]
 hdk = { workspace = true, features = ["encoding", "test_utils"] }
-holochain = { workspace = true, default-features = false, features = [
-  "test_utils",
-] }
+holochain = { workspace = true }
 tokio = { workspace = true }
