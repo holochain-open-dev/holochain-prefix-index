@@ -2,6 +2,8 @@
 name = "hc_prefix_index"
 version = "0.9.0"
 edition = "2021"
+description = "Prefix indexing of strings for use by type-ahead interfaces in holochain apps"
+license = "Apache-2.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
