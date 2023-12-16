@@ -64,5 +64,5 @@ jobs:
             target
           key: ${{ runner.os }}-build-${{ hashFiles('Cargo.lock') }}
 
-      - name: Test with tryorama
-        run: nix develop -c $SHELL -c "npm test"
+      - name: Test
+        run: nix develop -c $SHELL -c "npm run test"

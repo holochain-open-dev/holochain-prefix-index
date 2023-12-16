@@ -32,8 +32,8 @@ pub fn remove_from_index_a(text: String) -> ExternResult<()> {
 
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
 pub struct SearchIndexInput {
-    query: String,
-    limit: usize,
+    pub query: String,
+    pub limit: usize,
 }
 #[hdk_extern]
 pub fn search_index_a(input: SearchIndexInput) -> ExternResult<Vec<String>> {

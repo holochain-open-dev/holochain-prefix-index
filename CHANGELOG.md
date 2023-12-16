@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2023-12-16
+
+### Documentation
+
+- Add changelog
+
+### Miscellaneous Tasks
+
+- Fmt + clippy
+
+### Refactor
+
+- Migrate tests from tryoama to sweettest
+
+### Build
+
+- Holochain-0.2.3-beta-rc.1
+- Upgrade holochain to 0.2.4
+- Bump version to 0.6.0
+- Package lock
+
 ## [0.7.0] - 2023-09-27
 
 ### Build
@@ -25,6 +46,7 @@ All notable changes to this project will be documented in this file.
 
 ### Build
 
+- Bump holochain 0.2.1-beta-dev.0 & update for compatibility
 - [**breaking**] Upgrade to holochain v0.3.0-beta-dev.8
 - Upgrade to holochain 0.3.0-beta-dev.9
 - Upgrade client & tryorama

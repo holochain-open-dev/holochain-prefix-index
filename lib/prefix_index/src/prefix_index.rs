@@ -93,18 +93,22 @@ impl PrefixIndex {
                 let result_children: Vec<Link> = children
                     .clone()
                     .into_iter()
-                    .filter(|c| match EntryHash::try_from(c.target.clone()) {
-                        Ok(link_entry_hash) => link_entry_hash == path_entry_hash,
-                        Err(_) => false,
+                    .filter(|c| -> bool {
+                        let maybe_eh = c.clone().target.into_entry_hash();
+                        match maybe_eh {
+                            Some(eh) => eh == path_entry_hash,
+                            None => false,
+                        }
                     })
                     .collect();
 
                 // Delete children link corresponding to current path
                 for child in result_children.clone().into_iter() {
-                    let child_entry_hash =
-                        EntryHash::try_from(child.target).map_err(|err| wasm_error!(err))?;
-                    if child_entry_hash == path_entry_hash {
-                        delete_link(child.create_link_hash)?;
+                    let maybe_eh = child.target.into_entry_hash();
+                    if let Some(eh) = maybe_eh {
+                        if eh == path.path_entry_hash()? {
+                            delete_link(child.create_link_hash)?;
+                        }
                     }
                 }
 
@@ -228,14 +232,14 @@ impl PrefixIndex {
     ) -> ExternResult<Vec<String>> {
         let results = self.get_results_from_path(path, limit, shuffle)?;
 
-        let strings: Vec<String> = results
+        let leaf_strings: Vec<String> = results
             .into_iter()
             .filter(|r| r.leaf().is_some())
             .map(|p| p.leaf().unwrap().clone())
             .filter_map(|c| String::try_from(&c).ok())
             .collect();
 
-        Ok(strings)
+        Ok(leaf_strings)
     }
 
     #[allow(clippy::only_used_in_recursion)]

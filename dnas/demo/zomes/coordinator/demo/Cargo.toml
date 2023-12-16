@@ -1,6 +1,6 @@
 [package]
 name = "demo"
-version = "0.0.1"
+version = "0.2.0"
 edition = "2021"
 
 [lib]
@@ -10,6 +10,10 @@ name = "demo"
 [dependencies]
 hdk = { workspace = true }
 serde = { workspace = true }
-
-demo_integrity = { workspace = true } 
+demo_integrity = { workspace = true }
 prefix_index = { workspace = true }
+
+[dev-dependencies]
+hdk = { workspace = true, features = ["encoding", "test_utils"] }
+holochain = { workspace = true }
+tokio = { workspace = true }
