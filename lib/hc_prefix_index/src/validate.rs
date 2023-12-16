@@ -1,4 +1,3 @@
-//use crate::PREFIX_INDEX_WIDTH;
 use crate::PrefixIndex;
 use hdk::hash_path::path::{root_hash, Component};
 use hdk::prelude::*;

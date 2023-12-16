@@ -11,7 +11,7 @@ name = "demo"
 hdk = { workspace = true }
 serde = { workspace = true }
 demo_integrity = { workspace = true }
-prefix_index = { workspace = true }
+hc_prefix_index = { workspace = true }
 
 [dev-dependencies]
 hdk = { workspace = true, features = ["encoding", "test_utils"] }

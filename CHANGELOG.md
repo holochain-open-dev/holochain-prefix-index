@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2023-12-16
+
+### Miscellaneous Tasks
+
+- Move package dir to match name
+
+### Refactor
+
+- Rename package 'hc_prefix_index'
+
+### Build
+
+- Bump package version
+
 ## [0.8.0] - 2023-12-16
 
 ### Documentation
 
 - Add changelog
+- Changelog
 
 ### Miscellaneous Tasks
 

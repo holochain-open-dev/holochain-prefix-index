@@ -1219,9 +1219,9 @@ name = "demo"
 version = "0.2.0"
 dependencies = [
  "demo_integrity",
+ "hc_prefix_index",
  "hdk",
  "holochain",
- "prefix_index",
  "serde",
  "tokio",
 ]
@@ -1230,8 +1230,8 @@ dependencies = [
 name = "demo_integrity"
 version = "0.2.0"
 dependencies = [
+ "hc_prefix_index",
  "hdi",
- "prefix_index",
  "serde",
 ]
 
@@ -1981,6 +1981,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8094feaf31ff591f651a2664fb9cfd92bba7a60ce3197265e9482ebe753c8f7"
 dependencies = [
  "hashbrown 0.14.3",
+]
+
+[[package]]
+name = "hc_prefix_index"
+version = "0.9.0"
+dependencies = [
+ "hdk",
+ "rand 0.8.5",
+ "serde",
 ]
 
 [[package]]
@@ -4573,15 +4582,6 @@ checksum = "368ba315fb8c5052ab692e68a0eefec6ec57b23a36959c14496f0b0df2c0cecf"
 dependencies = [
  "predicates-core",
  "termtree",
-]
-
-[[package]]
-name = "prefix_index"
-version = "0.8.0"
-dependencies = [
- "hdk",
- "rand 0.8.5",
- "serde",
 ]
 
 [[package]]

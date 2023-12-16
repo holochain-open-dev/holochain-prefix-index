@@ -1,6 +1,6 @@
 use demo_integrity::*;
+use hc_prefix_index::PrefixIndex;
 use hdk::prelude::*;
-use prefix_index::PrefixIndex;
 
 #[hdk_extern]
 pub fn add_to_index_a(text: String) -> ExternResult<()> {
