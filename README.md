@@ -29,7 +29,7 @@ enum LinkTypes {
 5. Setup a prefix index
 
 ```rust
-use prefix_index::PrefixIndex;
+use hc_prefix_index::PrefixIndex;
 
 let index = PrefixIndex::new("demo_index".into(), LinkTypes::PrefixIndex, 3, 3)?;
 ```
