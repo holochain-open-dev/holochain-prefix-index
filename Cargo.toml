@@ -24,4 +24,4 @@ path = "dnas/demo/zomes/coordinator/demo"
 path = "dnas/demo/zomes/integrity/demo"
 
 [workspace.dependencies.hc_prefix_index]
-path = "lib/prefix_index"
+path = "lib/hc_prefix_index"
