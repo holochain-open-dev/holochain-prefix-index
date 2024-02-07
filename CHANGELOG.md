@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2024-02-07
+
+### Documentation
+
+- Add license and description
+- Fix readme crate name
+
+### Build
+
+- Bump holochain to 0.2.6
+
 ## [0.9.0] - 2023-12-16
+
+### Documentation
+
+- Changelog
+- Update readme
 
 ### Miscellaneous Tasks
 
