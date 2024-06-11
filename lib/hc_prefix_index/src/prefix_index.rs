@@ -1,6 +1,7 @@
 use crate::utils::*;
 use crate::validate::*;
-use hdk::{hash_path::path::Component, prelude::*};
+use hdk::prelude::*;
+use hdi::hash_path::path::Component;
 use rand::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
@@ -81,12 +82,18 @@ impl PrefixIndex {
             if let Some(parent) = path.parent() {
                 // Get all children of parent of path
                 let children = get_links(
-                    parent.path_entry_hash()?,
-                    LinkTypeFilter::single_type(
-                        self.link_type.zome_index,
-                        self.link_type.zome_type,
-                    ),
-                    None,
+                    GetLinksInput {
+                        base_address: AnyLinkableHash::from(parent.path_entry_hash()?),
+                        link_type: LinkTypeFilter::single_type(
+                            self.link_type.zome_index,
+                            self.link_type.zome_type,
+                        ),
+                        before: None,
+                        after: None,
+                        author: None,
+                        get_options: GetOptions::default(),
+                        tag_prefix: None
+                    }
                 )?;
 
                 let path_entry_hash = path.path_entry_hash()?;

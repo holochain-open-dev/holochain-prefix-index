@@ -1,6 +1,6 @@
 use crate::PrefixIndex;
-use hdk::hash_path::path::{root_hash, Component};
 use hdk::prelude::*;
+use hdi::hash_path::path::{root_hash, Component};
 
 pub fn validate_create_link_prefix_index(
     _action: CreateLink,
@@ -9,8 +9,7 @@ pub fn validate_create_link_prefix_index(
     tag: LinkTag,
     prefix_index: PrefixIndex,
 ) -> ExternResult<ValidateCallbackResult> {
-    let tag_bytes = SerializedBytes::try_from(UnsafeBytes::from(tag.into_inner()))
-        .map_err(|_| wasm_error!("Failed to convert link tag to SerializedBytes"))?;
+    let tag_bytes = SerializedBytes::from(UnsafeBytes::from(tag.into_inner()));
     let tag_component = Component::try_from(tag_bytes).map_err(|e| wasm_error!(e))?;
     let tag_string = String::try_from(&tag_component).map_err(|e| wasm_error!(e))?;
 
