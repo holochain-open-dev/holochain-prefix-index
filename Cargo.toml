@@ -9,10 +9,10 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "lib/*"]
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "0.4.1-rc"
-hdk = "0.3.1-rc"
+hdi = "0.5.0-dev.8"
+hdk = "0.4.0-dev.9"
 serde = "1"
-holochain = { version = "0.3.1-rc", default-features = false, features = [
+holochain = { version = "0.4.0-dev.10", default-features = false, features = [
   "test_utils",
 ] }
 tokio = { version = "1.27", features = ["full"] }
