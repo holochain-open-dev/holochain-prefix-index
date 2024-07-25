@@ -1,5 +1,5 @@
 use crate::PrefixIndex;
-use hdk::hash_path::path::{root_hash, Component};
+use hdi::hash_path::path::root_hash;
 use hdk::prelude::*;
 
 pub fn validate_create_link_prefix_index(
