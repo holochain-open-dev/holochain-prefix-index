@@ -51,7 +51,7 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -246,7 +246,7 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -441,7 +441,7 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -622,7 +622,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -649,7 +649,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -725,7 +725,7 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -914,7 +914,7 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -996,7 +996,7 @@ async fn get_random_results_returns_random_results() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    await_consistency(60, [&alice, &bob]).await;
 
     let results1: Vec<String> = conductors[0]
         .call(&alice.zome("demo"), "get_random_results_index_a", 1)
