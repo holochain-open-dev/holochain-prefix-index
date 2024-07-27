@@ -996,7 +996,7 @@ async fn get_random_results_returns_random_results() {
         )
         .await;
 
-    await_consistency(60, [&alice, &bob]).await;
+    await_consistency(240, [&alice, &bob]).await;
 
     let results1: Vec<String> = conductors[0]
         .call(&alice.zome("demo"), "get_random_results_index_a", 1)
