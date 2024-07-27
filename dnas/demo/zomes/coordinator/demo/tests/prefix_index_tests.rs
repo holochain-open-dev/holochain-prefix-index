@@ -51,7 +51,7 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -64,12 +64,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -97,12 +95,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -118,12 +114,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -139,12 +133,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -160,12 +152,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -181,12 +171,10 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -246,7 +234,7 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -259,12 +247,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -292,12 +278,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -313,12 +297,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -334,12 +316,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -355,12 +335,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -376,12 +354,10 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -441,7 +417,7 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ =  await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -466,12 +442,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -486,12 +460,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -507,12 +479,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -528,12 +498,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -549,12 +517,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -570,12 +536,10 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!(vec![
-        String::from("superdupercool"),
+    assert!([String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates"),
-    ]
+        String::from("supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -622,7 +586,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -636,7 +600,7 @@ async fn remove_result_from_index() {
         .await;
 
     assert!(
-        vec![String::from("superduper"), String::from("superdupercrazy")]
+        [String::from("superduper"), String::from("superdupercrazy")]
             .iter()
             .all(|item| results.contains(item))
     );
@@ -649,7 +613,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -725,7 +689,7 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -738,14 +702,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supercomputing"), results[0]);
@@ -761,14 +723,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supercomputing"), results[0]);
@@ -784,14 +744,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -807,14 +765,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -830,14 +786,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -853,14 +807,12 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#superdupercool"),
+    assert!([String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates"),
-    ]
+        String::from("$supersaturates")]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supersaturates"), results[0]);
@@ -914,7 +866,7 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -927,11 +879,9 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
         )
         .await;
 
-    assert!(vec![
-        String::from("#HOLOCHAIN"),
+    assert!([String::from("#HOLOCHAIN"),
         String::from("#holosapian"),
-        String::from("$HOLY"),
-    ]
+        String::from("$HOLY")]
     .iter()
     .all(|item| results.contains(item)));
 }
@@ -996,7 +946,7 @@ async fn get_random_results_returns_random_results() {
         )
         .await;
 
-    consistency_60s([&alice, &bob]).await;
+    let _ = await_consistency(240, [&alice, &bob]).await;
 
     let results1: Vec<String> = conductors[0]
         .call(&alice.zome("demo"), "get_random_results_index_a", 1)

@@ -2,7 +2,7 @@
   description = "Flake for Holochain app development";
 
   inputs = {
-    versions.url = "github:holochain/holochain?dir=versions/0_2";
+    versions.url = "github:holochain/holochain?dir=versions/0_3";
     holochain-flake = {
       url = "github:holochain/holochain";
       inputs.versions.follows = "versions";

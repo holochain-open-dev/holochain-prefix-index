@@ -1,12 +1,14 @@
-use hdk::{hash_path::path::Component, prelude::*};
+use hdk::prelude::*;
 
 /// Duplicates of get_children from holochain TypedPath
 /// but without calling ensure() on those children
 pub fn get_children(path: TypedPath) -> ExternResult<Vec<Link>> {
     let mut unwrapped = get_links(
-        path.path_entry_hash()?,
-        LinkTypeFilter::single_type(path.link_type.zome_index, path.link_type.zome_type),
-        None,
+        GetLinksInputBuilder::try_new(
+            path.path_entry_hash()?,
+            LinkTypeFilter::single_type(path.link_type.zome_index, path.link_type.zome_type),
+        )?
+        .build(),
     )?;
     // Only need one of each hash to build the tree.
     unwrapped.sort_unstable_by(|a, b| a.tag.cmp(&b.tag));
