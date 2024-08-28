@@ -1,6 +1,6 @@
 [package]
 name = "hc_prefix_index"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 description = "Prefix indexing of strings for use by type-ahead interfaces in holochain apps"
 license = "Apache-2.0"
