@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+- Bump holochain to 0.4.1
+
 ## [0.11.0] - 2024-07-27
 
 ## Build
