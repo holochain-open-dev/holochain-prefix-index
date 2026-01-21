@@ -12,6 +12,7 @@ hdk = { workspace = true }
 serde = { workspace = true }
 demo_integrity = { workspace = true }
 hc_prefix_index = { workspace = true }
+holochain_serialized_bytes = { workspace = true }
 
 [dev-dependencies]
 hdk = { workspace = true, features = ["encoding", "test_utils"] }

@@ -1,7 +1,6 @@
 use crate::utils::*;
 use crate::validate::*;
 use hdk::prelude::*;
-use rand::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
 pub struct PrefixIndex {
@@ -58,37 +57,37 @@ impl PrefixIndex {
         Ok(typed_path)
     }
 
-    pub fn remove_result(&self, text: String) -> ExternResult<()> {
-        self.inner_remove_result(text, None)
+    pub fn remove_result(&self, text: String, strategy: GetStrategy) -> ExternResult<()> {
+        self.inner_remove_result(text, None, strategy)
     }
 
-    pub fn remove_result_with_label(&self, text: String, full_text: String) -> ExternResult<()> {
-        self.inner_remove_result(text, Some(full_text))
+    pub fn remove_result_with_label(&self, text: String, full_text: String, strategy: GetStrategy) -> ExternResult<()> {
+        self.inner_remove_result(text, Some(full_text), strategy)
     }
 
-    fn inner_remove_result(&self, text: String, full_text: Option<String>) -> ExternResult<()> {
+    fn inner_remove_result(&self, text: String, full_text: Option<String>, strategy: GetStrategy) -> ExternResult<()> {
         let path = self
             .make_result_path(text, full_text)?
             .typed(self.link_type)?;
 
-        self.inner_remove_result_from_path(path)?;
+        self.inner_remove_result_from_path(path, strategy)?;
 
         Ok(())
     }
 
-    fn inner_remove_result_from_path(&self, path: TypedPath) -> ExternResult<()> {
+    fn inner_remove_result_from_path(&self, path: TypedPath, strategy: GetStrategy) -> ExternResult<()> {
         if path.exists()? {
             if let Some(parent) = path.parent() {
                 // Get all children of parent of path
                 let children = get_links(
-                    GetLinksInputBuilder::try_new(
+                    LinkQuery::new(
                         parent.path_entry_hash()?,
                         LinkTypeFilter::single_type(
                             self.link_type.zome_index,
                             self.link_type.zome_type,
                         ),
-                    )?
-                    .build(),
+                    ),
+                    strategy,
                 )?;
 
                 let path_entry_hash = path.path_entry_hash()?;
@@ -105,11 +104,12 @@ impl PrefixIndex {
                     .collect();
 
                 // Delete children link corresponding to current path
+                let get_options = GetOptions::from(strategy);
                 for child in result_children.clone().into_iter() {
                     let maybe_eh = child.target.into_entry_hash();
                     if let Some(eh) = maybe_eh {
                         if eh == path.path_entry_hash()? {
-                            delete_link(child.create_link_hash)?;
+                            delete_link(child.create_link_hash, get_options.clone())?;
                         }
                     }
                 }
@@ -124,7 +124,7 @@ impl PrefixIndex {
 
                 // If there are no other children of parent of path, delete parent of path
                 if other_children.is_empty() && !parent.is_root() {
-                    self.inner_remove_result_from_path(parent)?;
+                    self.inner_remove_result_from_path(parent, strategy)?;
                 }
             }
         }
@@ -132,7 +132,7 @@ impl PrefixIndex {
         Ok(())
     }
 
-    pub fn get_results(&self, query: String, limit: usize) -> ExternResult<Vec<String>> {
+    pub fn get_results(&self, query: String, limit: usize, strategy: GetStrategy) -> ExternResult<Vec<String>> {
         if limit == 0 {
             return Err(wasm_error!(WasmErrorInner::Guest(
                 "limit must be > 0".into()
@@ -149,10 +149,10 @@ impl PrefixIndex {
             path_to_string(path.clone())
         );
 
-        self.inner_get_results(path, limit, false)
+        self.inner_get_results(path, limit, false, strategy)
     }
 
-    pub fn get_random_results(&self, limit: usize) -> ExternResult<Vec<String>> {
+    pub fn get_random_results(&self, limit: usize, strategy: GetStrategy) -> ExternResult<Vec<String>> {
         if limit == 0 {
             return Err(wasm_error!(WasmErrorInner::Guest(
                 "limit must be > 0".into()
@@ -161,7 +161,7 @@ impl PrefixIndex {
 
         let base_path = Path::from(self.index_name.clone()).typed(self.link_type)?;
 
-        self.inner_get_results(base_path, limit, true)
+        self.inner_get_results(base_path, limit, true, strategy)
     }
 
     /// Make a Path to the result following the ShardStrategy specified by PrefixIndex width + depth
@@ -222,8 +222,9 @@ impl PrefixIndex {
         path: TypedPath,
         limit: usize,
         shuffle: bool,
+        strategy: GetStrategy,
     ) -> ExternResult<Vec<TypedPath>> {
-        self.inner_get_results_from_path(path, limit, shuffle, vec![], vec![])
+        self.inner_get_results_from_path(path, limit, shuffle, vec![], vec![], strategy)
     }
 
     fn inner_get_results(
@@ -231,8 +232,9 @@ impl PrefixIndex {
         path: TypedPath,
         limit: usize,
         shuffle: bool,
+        strategy: GetStrategy,
     ) -> ExternResult<Vec<String>> {
-        let results = self.get_results_from_path(path, limit, shuffle)?;
+        let results = self.get_results_from_path(path, limit, shuffle, strategy)?;
 
         let leaf_strings: Vec<String> = results
             .into_iter()
@@ -252,10 +254,11 @@ impl PrefixIndex {
         shuffle: bool,
         mut visited: Vec<TypedPath>,
         mut results: Vec<TypedPath>,
+        strategy: GetStrategy,
     ) -> ExternResult<Vec<TypedPath>> {
         visited.push(path.clone());
 
-        let mut children = get_children_paths(path.clone())?;
+        let mut children = get_children_paths(path.clone(), strategy)?;
         match children.is_empty() {
             true => {
                 if path.exists()? && !results.contains(&path) && results.len() < limit {
@@ -266,7 +269,7 @@ impl PrefixIndex {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
                             return self.inner_get_results_from_path(
-                                parent, limit, shuffle, visited, results,
+                                parent, limit, shuffle, visited, results, strategy,
                             );
                         }
 
@@ -277,8 +280,7 @@ impl PrefixIndex {
             }
             false => {
                 if shuffle {
-                    let mut rng = rand::thread_rng();
-                    children.shuffle(&mut rng)
+                    hdk_shuffle(&mut children)?;
                 }
 
                 for child in children.into_iter() {
@@ -289,6 +291,7 @@ impl PrefixIndex {
                             shuffle,
                             visited.clone(),
                             results.clone(),
+                            strategy,
                         )
                         .unwrap_or_default();
 
@@ -306,7 +309,7 @@ impl PrefixIndex {
                     Some(parent) => {
                         if !visited.contains(&parent) && !parent.is_root() {
                             return self.inner_get_results_from_path(
-                                parent, limit, shuffle, visited, results,
+                                parent, limit, shuffle, visited, results, strategy,
                             );
                         }
 

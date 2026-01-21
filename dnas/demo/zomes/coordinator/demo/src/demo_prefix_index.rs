@@ -25,7 +25,7 @@ pub fn remove_from_index_a(text: String) -> ExternResult<()> {
         PREFIX_INDEX_A_DEPTH,
     )?;
 
-    index.remove_result(text)?;
+    index.remove_result(text, GetStrategy::Local)?;
 
     Ok(())
 }
@@ -44,7 +44,7 @@ pub fn search_index_a(input: SearchIndexInput) -> ExternResult<Vec<String>> {
         PREFIX_INDEX_A_DEPTH,
     )?;
 
-    index.get_results(input.query, input.limit)
+    index.get_results(input.query, input.limit, GetStrategy::Local)
 }
 
 #[hdk_extern]
@@ -56,7 +56,7 @@ pub fn get_random_results_index_a(limit: usize) -> ExternResult<Vec<String>> {
         PREFIX_INDEX_A_DEPTH,
     )?;
 
-    index.get_random_results(limit)
+    index.get_random_results(limit, GetStrategy::Local)
 }
 
 #[hdk_extern]
@@ -82,7 +82,7 @@ pub fn search_index_b(input: SearchIndexInput) -> ExternResult<Vec<String>> {
         PREFIX_INDEX_B_DEPTH,
     )?;
 
-    index.get_results(input.query, input.limit)
+    index.get_results(input.query, input.limit, GetStrategy::Local)
 }
 
 #[hdk_extern]
@@ -108,7 +108,7 @@ pub fn search_index_c(input: SearchIndexInput) -> ExternResult<Vec<String>> {
         PREFIX_INDEX_C_DEPTH,
     )?;
 
-    index.get_results(input.query, input.limit)
+    index.get_results(input.query, input.limit, GetStrategy::Local)
 }
 
 #[hdk_extern]
@@ -136,7 +136,7 @@ pub fn remove_hashtag_from_index_a(hashtag: String) -> ExternResult<()> {
     )?;
 
     let index_text = make_hashtag_index_text(hashtag.clone());
-    index.remove_result_with_label(index_text, hashtag)?;
+    index.remove_result_with_label(index_text, hashtag, GetStrategy::Local)?;
 
     Ok(())
 }
@@ -170,7 +170,7 @@ pub fn remove_cashtag_from_index_a(cashtag: String) -> ExternResult<()> {
     )?;
 
     let index_text = make_cashtag_index_text(cashtag.clone());
-    index.remove_result_with_label(index_text, cashtag)?;
+    index.remove_result_with_label(index_text, cashtag, GetStrategy::Local)?;
 
     Ok(())
 }

@@ -1,5 +1,5 @@
 ---
-manifest_version: "1"
+manifest_version: "0"
 name: demo
 description: ~
 roles:
@@ -8,7 +8,7 @@ roles:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dnas/demo/workdir/demo.dna"
+      path: "../dnas/demo/workdir/demo.dna"
       modifiers:
         network_seed: ~
         properties: ~
