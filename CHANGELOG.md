@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.15.0]
+
+## Build
+
+- Bump to holochain 0.7 (hdi 0.8 / hdk 0.7, holonix main-0.7)
+
+## Changed
+
+- `PrefixIndex::validate_create_link` / `validate_delete_link` now take the 0.7 `TypedAction<CreateLinkData>` / `TypedAction<DeleteLinkData>` produced by `FlatOp::Link(OpLink::…)` match arms
+- happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::from_config_rendezvous`, `await_consistency_s`)
+
 ## [0.13.0] - 2025-02-25
 
 ## Build

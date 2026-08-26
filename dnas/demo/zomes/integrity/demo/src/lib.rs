@@ -81,7 +81,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     )?;
 
     match op.flattened::<(), LinkTypes>()? {
-        FlatOp::StoreEntry(store_entry) => match store_entry {
+        FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry {
                 app_entry: _,
                 action: _,
@@ -93,7 +93,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             )),
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterUpdate(update_entry) => match update_entry {
+        FlatOp::Update(update_entry) => match update_entry {
             OpUpdate::Entry {
                 app_entry: _,
                 action: _,
@@ -102,102 +102,95 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             )),
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterDelete(_delete_entry) => Ok(ValidateCallbackResult::Invalid(
+        FlatOp::Delete(_delete_entry) => Ok(ValidateCallbackResult::Invalid(
             "There are no entry types in this integrity zome".to_string(),
         )),
-        FlatOp::RegisterCreateLink {
-            link_type,
-            base_address: _,
-            target_address: _,
-            tag: _,
-            action,
-        } => match link_type {
-            LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
-            LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
-            LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
+        FlatOp::Link(op_link) => match op_link {
+            OpLink::CreateLink { link_type, action } => match link_type {
+                LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
+                LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
+                LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
+            },
+            OpLink::DeleteLink {
+                original_action,
+                link_type,
+                action,
+            } => match link_type {
+                LinkTypes::PrefixIndexA => {
+                    prefix_index_a.validate_delete_link(action, original_action)
+                }
+                LinkTypes::PrefixIndexB => {
+                    prefix_index_b.validate_delete_link(action, original_action)
+                }
+                LinkTypes::PrefixIndexC => {
+                    prefix_index_c.validate_delete_link(action, original_action)
+                }
+            },
         },
-        FlatOp::RegisterDeleteLink {
-            link_type,
-            base_address: _,
-            target_address: _,
-            tag: _,
-            original_action,
-            action,
-        } => match link_type {
-            LinkTypes::PrefixIndexA => prefix_index_a.validate_delete_link(action, original_action),
-            LinkTypes::PrefixIndexB => prefix_index_b.validate_delete_link(action, original_action),
-            LinkTypes::PrefixIndexC => prefix_index_c.validate_delete_link(action, original_action),
-        },
-        FlatOp::StoreRecord(store_record) => match store_record {
-            // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
+        FlatOp::CreateRecord(create_record) => match create_record {
+            // Complementary validation to the `CreateEntry` Op, in which the record itself is validated
+            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `CreateEntry`
+            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `CreateEntry` validation failed
             OpRecord::CreateEntry {
                 app_entry: _,
                 action: _,
             } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
-            // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry` and in `RegisterUpdate`
+            // Complementary validation to the `Update` Op, in which the record itself is validated
+            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `CreateEntry` and in `Update`
             // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the other validations failed
             OpRecord::UpdateEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
-            // Complementary validation to the `RegisterDelete` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDelete`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDelete` validation failed
+            // Complementary validation to the `Delete` Op, in which the record itself is validated
+            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Delete`
+            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Delete` validation failed
             OpRecord::DeleteEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
-            // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterCreateLink`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterCreateLink` validation failed
-            OpRecord::CreateLink {
-                base_address: _,
-                target_address: _,
-                tag: _,
-                link_type,
-                action,
-            } => match link_type {
+            // Complementary validation to the `Link(OpLink::CreateLink)` Op, in which the record itself is validated
+            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Link(OpLink::CreateLink)`
+            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Link(OpLink::CreateLink)` validation failed
+            OpRecord::CreateLink { link_type, action } => match link_type {
                 LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
                 LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
                 LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
             },
-            // Complementary validation to the `RegisterDeleteLink` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDeleteLink` validation failed
-            OpRecord::DeleteLink {
-                original_action_hash,
-                base_address: _,
-                action,
-            } => {
-                let record = must_get_valid_record(original_action_hash)?;
-                let create_link = match record.action() {
-                    Action::CreateLink(create_link) => create_link.clone(),
-                    _ => {
-                        return Ok(ValidateCallbackResult::Invalid(
-                            "The action that a DeleteLink deletes must be a CreateLink".to_string(),
-                        ));
-                    }
-                };
-                let link_type =
-                    match LinkTypes::from_type(create_link.zome_index, create_link.link_type)? {
-                        Some(lt) => lt,
-                        None => {
-                            return Ok(ValidateCallbackResult::Valid);
+            // Complementary validation to the `Link(OpLink::DeleteLink)` Op, in which the record itself is validated
+            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Link(OpLink::DeleteLink)`
+            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Link(OpLink::DeleteLink)` validation failed
+            OpRecord::DeleteLink { action } => {
+                let record = must_get_valid_record(action.data.link_add_address.clone())?;
+                let original_action =
+                    match TypedAction::<CreateLinkData>::try_from(record.action().clone()) {
+                        Ok(a) => a,
+                        Err(_) => {
+                            return Ok(ValidateCallbackResult::Invalid(
+                                "The action that a DeleteLink deletes must be a CreateLink"
+                                    .to_string(),
+                            ));
                         }
                     };
+                let link_type = match LinkTypes::from_type(
+                    original_action.data.zome_index,
+                    original_action.data.link_type,
+                )? {
+                    Some(lt) => lt,
+                    None => {
+                        return Ok(ValidateCallbackResult::Valid);
+                    }
+                };
 
                 match link_type {
                     LinkTypes::PrefixIndexA => {
-                        prefix_index_a.validate_delete_link(action, create_link)
+                        prefix_index_a.validate_delete_link(action, original_action)
                     }
                     LinkTypes::PrefixIndexB => {
-                        prefix_index_b.validate_delete_link(action, create_link)
+                        prefix_index_b.validate_delete_link(action, original_action)
                     }
                     LinkTypes::PrefixIndexC => {
-                        prefix_index_c.validate_delete_link(action, create_link)
+                        prefix_index_c.validate_delete_link(action, original_action)
                     }
                 }
             }
@@ -213,11 +206,18 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             OpRecord::InitZomesComplete { .. } => Ok(ValidateCallbackResult::Valid),
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterAgentActivity(agent_activity) => match agent_activity {
+        FlatOp::AgentActivity(agent_activity) => match agent_activity {
             OpActivity::CreateAgent { agent, action } => {
-                let previous_action = must_get_action(action.prev_action)?;
-                match previous_action.action() {
-                    Action::AgentValidationPkg(AgentValidationPkg { membrane_proof, .. }) => validate_agent_joining(agent, membrane_proof),
+                let prev_action_hash =
+                    action
+                        .prev_action()
+                        .cloned()
+                        .ok_or(wasm_error!(WasmErrorInner::Guest(
+                            "CreateAgent action must have a previous action".to_string()
+                        )))?;
+                let previous_action = must_get_action(prev_action_hash)?;
+                match &previous_action.action().data {
+                    ActionData::AgentValidationPkg(AgentValidationPkgData { membrane_proof }) => validate_agent_joining(agent, membrane_proof),
                     _ => Ok(ValidateCallbackResult::Invalid("The previous action for a `CreateAgent` action must be an `AgentValidationPkg`".to_string()))
                 }
             }

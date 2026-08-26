@@ -1,19 +1,30 @@
 use demo::SearchIndexInput;
 use hdk::prelude::*;
-use holochain::{conductor::config::ConductorConfig, prelude::DnaFile, sweettest::*};
+use holochain::{
+    conductor::config::ConductorConfig,
+    prelude::{random_network_seed, DnaFile},
+    sweettest::*,
+};
 
+// Each test gets its own network seed so concurrently running tests form
+// disjoint DHT networks instead of cross-contaminating each other's indexes.
 pub async fn load_dna() -> DnaFile {
     let dna_path = std::env::current_dir()
         .unwrap()
         .join("../../../workdir/demo.dna");
-    SweetDnaFile::from_bundle(&dna_path).await.unwrap()
+    SweetDnaFile::from_bundle_with_overrides(
+        &dna_path,
+        DnaModifiersOpt::<SerializedBytes>::none().with_network_seed(random_network_seed()),
+    )
+    .await
+    .unwrap()
 }
 
 #[tokio::test(flavor = "multi_thread")]
 async fn search_prefix_index_with_width_3_and_depth_3() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -51,7 +62,7 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -64,10 +75,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -95,10 +108,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -114,10 +129,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -133,10 +150,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -152,10 +171,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -171,10 +192,12 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -197,7 +220,7 @@ async fn search_prefix_index_with_width_3_and_depth_3() {
 async fn search_prefix_index_with_width_3_and_depth_5() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -234,7 +257,7 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -247,10 +270,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -278,10 +303,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -297,10 +324,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -316,10 +345,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -335,10 +366,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -354,10 +387,12 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -380,7 +415,7 @@ async fn search_prefix_index_with_width_3_and_depth_5() {
 async fn search_prefix_index_with_width_4_and_depth_2() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -417,7 +452,7 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    let _ =  await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -442,10 +477,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
 
@@ -460,10 +497,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supercomputing"));
@@ -479,10 +518,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -498,10 +539,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -517,10 +560,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("superdupercool"));
@@ -536,10 +581,12 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
         )
         .await;
 
-    assert!([String::from("superdupercool"),
+    assert!([
+        String::from("superdupercool"),
         String::from("superdupercrazy"),
         String::from("supercomputing"),
-        String::from("supersaturates")]
+        String::from("supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(results[0], String::from("supersaturates"));
@@ -562,7 +609,7 @@ async fn search_prefix_index_with_width_4_and_depth_2() {
 async fn remove_result_from_index() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -586,7 +633,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -613,7 +660,7 @@ async fn remove_result_from_index() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -633,7 +680,7 @@ async fn remove_result_from_index() {
 async fn add_result_with_labels() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -689,7 +736,7 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -702,12 +749,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supercomputing"), results[0]);
@@ -723,12 +772,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supercomputing"), results[0]);
@@ -744,12 +795,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -765,12 +818,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -786,12 +841,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#superdupercool"), results[0]);
@@ -807,12 +864,14 @@ async fn add_result_with_labels() {
         )
         .await;
 
-    assert!([String::from("#superdupercool"),
+    assert!([
+        String::from("#superdupercool"),
         String::from("#superdupercrazy"),
         String::from("#supercomputing"),
         String::from("#supersaturates"),
         String::from("$supercomputing"),
-        String::from("$supersaturates")]
+        String::from("$supersaturates")
+    ]
     .iter()
     .all(|item| results.contains(item)));
     assert_eq!(String::from("#supersaturates"), results[0]);
@@ -834,7 +893,7 @@ async fn add_result_with_labels() {
 async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -866,7 +925,7 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
         )
         .await;
 
-    let _ = await_consistency(60, [&alice, &bob]).await;
+    let _ = await_consistency_s(60, [&alice, &bob]).await;
 
     let results: Vec<String> = conductors[0]
         .call(
@@ -879,9 +938,11 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
         )
         .await;
 
-    assert!([String::from("#HOLOCHAIN"),
+    assert!([
+        String::from("#HOLOCHAIN"),
         String::from("#holosapian"),
-        String::from("$HOLY")]
+        String::from("$HOLY")
+    ]
     .iter()
     .all(|item| results.contains(item)));
 }
@@ -890,7 +951,7 @@ async fn presevere_letter_case_in_result_but_ignore_letter_case_in_index() {
 async fn get_random_results_returns_random_results() {
     let dna = load_dna().await;
     let mut conductors: SweetConductorBatch =
-        SweetConductorBatch::from_config(2, ConductorConfig::default()).await;
+        SweetConductorBatch::from_config_rendezvous(2, ConductorConfig::default()).await;
     let ((alice,), (bob,)) = conductors
         .setup_app("demo", &[dna])
         .await
@@ -946,7 +1007,7 @@ async fn get_random_results_returns_random_results() {
         )
         .await;
 
-    let _ = await_consistency(240, [&alice, &bob]).await;
+    let _ = await_consistency_s(240, [&alice, &bob]).await;
 
     let results1: Vec<String> = conductors[0]
         .call(&alice.zome("demo"), "get_random_results_index_a", 1)

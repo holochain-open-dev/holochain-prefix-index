@@ -1,5 +1,6 @@
 use crate::utils::*;
 use crate::validate::*;
+use hdk::hdi::prelude::TypedAction;
 use hdk::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, SerializedBytes)]
@@ -61,11 +62,21 @@ impl PrefixIndex {
         self.inner_remove_result(text, None, strategy)
     }
 
-    pub fn remove_result_with_label(&self, text: String, full_text: String, strategy: GetStrategy) -> ExternResult<()> {
+    pub fn remove_result_with_label(
+        &self,
+        text: String,
+        full_text: String,
+        strategy: GetStrategy,
+    ) -> ExternResult<()> {
         self.inner_remove_result(text, Some(full_text), strategy)
     }
 
-    fn inner_remove_result(&self, text: String, full_text: Option<String>, strategy: GetStrategy) -> ExternResult<()> {
+    fn inner_remove_result(
+        &self,
+        text: String,
+        full_text: Option<String>,
+        strategy: GetStrategy,
+    ) -> ExternResult<()> {
         let path = self
             .make_result_path(text, full_text)?
             .typed(self.link_type)?;
@@ -75,7 +86,11 @@ impl PrefixIndex {
         Ok(())
     }
 
-    fn inner_remove_result_from_path(&self, path: TypedPath, strategy: GetStrategy) -> ExternResult<()> {
+    fn inner_remove_result_from_path(
+        &self,
+        path: TypedPath,
+        strategy: GetStrategy,
+    ) -> ExternResult<()> {
         if path.exists()? {
             if let Some(parent) = path.parent() {
                 // Get all children of parent of path
@@ -132,7 +147,12 @@ impl PrefixIndex {
         Ok(())
     }
 
-    pub fn get_results(&self, query: String, limit: usize, strategy: GetStrategy) -> ExternResult<Vec<String>> {
+    pub fn get_results(
+        &self,
+        query: String,
+        limit: usize,
+        strategy: GetStrategy,
+    ) -> ExternResult<Vec<String>> {
         if limit == 0 {
             return Err(wasm_error!(WasmErrorInner::Guest(
                 "limit must be > 0".into()
@@ -152,7 +172,11 @@ impl PrefixIndex {
         self.inner_get_results(path, limit, false, strategy)
     }
 
-    pub fn get_random_results(&self, limit: usize, strategy: GetStrategy) -> ExternResult<Vec<String>> {
+    pub fn get_random_results(
+        &self,
+        limit: usize,
+        strategy: GetStrategy,
+    ) -> ExternResult<Vec<String>> {
         if limit == 0 {
             return Err(wasm_error!(WasmErrorInner::Guest(
                 "limit must be > 0".into()
@@ -192,27 +216,30 @@ impl PrefixIndex {
         Ok(Path::from(path_components))
     }
 
-    pub fn validate_create_link(self, action: CreateLink) -> ExternResult<ValidateCallbackResult> {
-        validate_create_link_prefix_index(
-            action.clone(),
-            action.base_address,
-            action.target_address,
-            action.tag,
-            self,
-        )
+    pub fn validate_create_link(
+        self,
+        action: TypedAction<CreateLinkData>,
+    ) -> ExternResult<ValidateCallbackResult> {
+        let base_address = action.data.base_address.clone();
+        let target_address = action.data.target_address.clone();
+        let tag = action.data.tag.clone();
+        validate_create_link_prefix_index(action.into(), base_address, target_address, tag, self)
     }
 
     pub fn validate_delete_link(
         self,
-        action: DeleteLink,
-        original_action: CreateLink,
+        action: TypedAction<DeleteLinkData>,
+        original_action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {
+        let base_address = original_action.data.base_address.clone();
+        let target_address = original_action.data.target_address.clone();
+        let tag = original_action.data.tag.clone();
         validate_delete_link_prefix_index(
-            action,
-            original_action.clone(),
-            original_action.base_address,
-            original_action.target_address,
-            original_action.tag,
+            action.into(),
+            original_action.into(),
+            base_address,
+            target_address,
+            tag,
         )
     }
 

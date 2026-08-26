@@ -3,7 +3,7 @@ use hdi::hash_path::path::root_hash;
 use hdk::prelude::*;
 
 pub fn validate_create_link_prefix_index(
-    _action: CreateLink,
+    _action: Action,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     tag: LinkTag,
@@ -55,13 +55,13 @@ pub fn validate_create_link_prefix_index(
 }
 
 pub fn validate_delete_link_prefix_index(
-    action: DeleteLink,
-    original_action: CreateLink,
+    action: Action,
+    original_action: Action,
     base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
 ) -> ExternResult<ValidateCallbackResult> {
-    if action.author != original_action.author {
+    if action.author() != original_action.author() {
         return Ok(ValidateCallbackResult::Invalid(
             "Only the original author can delete a PrefixIndex link".into(),
         ));
