@@ -157,43 +157,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
                 LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
             },
-            // Complementary validation to the `Link(OpLink::DeleteLink)` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Link(OpLink::DeleteLink)`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Link(OpLink::DeleteLink)` validation failed
-            OpRecord::DeleteLink { action } => {
-                let record = must_get_valid_record(action.data.link_add_address.clone())?;
-                let original_action =
-                    match TypedAction::<CreateLinkData>::try_from(record.action().clone()) {
-                        Ok(a) => a,
-                        Err(_) => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "The action that a DeleteLink deletes must be a CreateLink"
-                                    .to_string(),
-                            ));
-                        }
-                    };
-                let link_type = match LinkTypes::from_type(
-                    original_action.data.zome_index,
-                    original_action.data.link_type,
-                )? {
-                    Some(lt) => lt,
-                    None => {
-                        return Ok(ValidateCallbackResult::Valid);
-                    }
-                };
-
-                match link_type {
-                    LinkTypes::PrefixIndexA => {
-                        prefix_index_a.validate_delete_link(action, original_action)
-                    }
-                    LinkTypes::PrefixIndexB => {
-                        prefix_index_b.validate_delete_link(action, original_action)
-                    }
-                    LinkTypes::PrefixIndexC => {
-                        prefix_index_c.validate_delete_link(action, original_action)
-                    }
-                }
-            }
+            // DeleteLink validation happens in the `Link(OpLink::DeleteLink)` arm above,
+            // where the host hands us the original CreateLink action for free. Validating
+            // here too would force a blocking `must_get_valid_record` fetch of the original
+            // action for every DeleteLink stored by this authority.
+            OpRecord::DeleteLink { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::UpdatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::CreateCapClaim { .. } => Ok(ValidateCallbackResult::Valid),
@@ -208,13 +176,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::AgentActivity(agent_activity) => match agent_activity {
             OpActivity::CreateAgent { agent, action } => {
-                let prev_action_hash =
-                    action
-                        .prev_action()
-                        .cloned()
-                        .ok_or(wasm_error!(WasmErrorInner::Guest(
-                            "CreateAgent action must have a previous action".to_string()
-                        )))?;
+                let prev_action_hash = action.prev_action().cloned().ok_or_else(|| {
+                    wasm_error!(WasmErrorInner::Guest(
+                        "CreateAgent action must have a previous action".to_string()
+                    ))
+                })?;
                 let previous_action = must_get_action(prev_action_hash)?;
                 match &previous_action.action().data {
                     ActionData::AgentValidationPkg(AgentValidationPkgData { membrane_proof }) => validate_agent_joining(agent, membrane_proof),

@@ -220,10 +220,7 @@ impl PrefixIndex {
         self,
         action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {
-        let base_address = action.data.base_address.clone();
-        let target_address = action.data.target_address.clone();
-        let tag = action.data.tag.clone();
-        validate_create_link_prefix_index(action.into(), base_address, target_address, tag, self)
+        validate_create_link_prefix_index(&action, &self)
     }
 
     pub fn validate_delete_link(
@@ -231,16 +228,7 @@ impl PrefixIndex {
         action: TypedAction<DeleteLinkData>,
         original_action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {
-        let base_address = original_action.data.base_address.clone();
-        let target_address = original_action.data.target_address.clone();
-        let tag = original_action.data.tag.clone();
-        validate_delete_link_prefix_index(
-            action.into(),
-            original_action.into(),
-            base_address,
-            target_address,
-            tag,
-        )
+        validate_delete_link_prefix_index(&action, &original_action)
     }
 
     /// Gets the deepest-most Paths that descend from `path`, or it's parents, up to limit

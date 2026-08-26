@@ -4,16 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## [0.15.0]
+## [0.15.0] - 2026-08-26
 
-## Build
+### Build
 
 - Bump to holochain 0.7 (hdi 0.8 / hdk 0.7, holonix main-0.7)
 
-## Changed
+### Changed
 
-- `PrefixIndex::validate_create_link` / `validate_delete_link` now take the 0.7 `TypedAction<CreateLinkData>` / `TypedAction<DeleteLinkData>` produced by `FlatOp::Link(OpLink::…)` match arms
-- happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::from_config_rendezvous`, `await_consistency_s`)
+- **Breaking:** `PrefixIndex::validate_create_link` / `validate_delete_link` now take the 0.7 `TypedAction<CreateLinkData>` / `TypedAction<DeleteLinkData>` produced by `FlatOp::Link(OpLink::…)` match arms
+- Link tags that fail to decode as a path component are now rejected as `Invalid` instead of erroring the validate callback
+- Removed the second-component width check from create-link validation: results shorter than the index width (and labeled results) legitimately produce a leaf directly under the index root, so the old check made short strings unindexable
+- happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::standard`, `await_consistency_s`, per-test network seeds)
+
+## [0.14.0] - 2026-01-21
+
+### Build
+
+- Bump to holochain 0.6
+
+### Changed
+
+- **Breaking:** `get_results`, `get_random_results`, `remove_result`, and `remove_result_with_label` take a new required `GetStrategy` argument controlling whether index reads go to the network or only to local storage
 
 ## [0.13.0] - 2025-02-25
 
