@@ -45,7 +45,10 @@ pub fn get_children_paths(path: TypedPath, strategy: GetStrategy) -> ExternResul
             if let Some(component) = maybe_component {
                 new_path.append_component(component);
             }
-            new_path.into_typed(path.link_type)
+            // into_typed resets the strategy to the default, so carry the
+            // caller's through — otherwise every exists() below the top level
+            // of a Local search still goes to the network.
+            new_path.into_typed(path.link_type).with_strategy(strategy)
         })
         .collect())
 }

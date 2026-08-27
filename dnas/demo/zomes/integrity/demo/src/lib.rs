@@ -114,11 +114,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             OpLink::CreateLink { link_type, action } => {
                 prefix_index_for(link_type)?.validate_create_link(action)
             }
+            // Delete validation reads no index config, so don't build one.
             OpLink::DeleteLink {
                 original_action,
-                link_type,
                 action,
-            } => prefix_index_for(link_type)?.validate_delete_link(action, original_action),
+                ..
+            } => PrefixIndex::validate_delete_link(action, original_action),
         },
         FlatOp::CreateRecord(create_record) => match create_record {
             // Complementary validation to the `CreateEntry` Op, in which the record itself is validated

@@ -16,8 +16,10 @@ pub fn add_to_index_a(text: String) -> ExternResult<()> {
     Ok(())
 }
 
+/// Remove a result, returning how many of the caller's own links were deleted.
+/// Zero means the caller authored none of this result's links.
 #[hdk_extern]
-pub fn remove_from_index_a(text: String) -> ExternResult<()> {
+pub fn remove_from_index_a(text: String) -> ExternResult<usize> {
     let index = PrefixIndex::new(
         PREFIX_INDEX_A_NAME.into(),
         LinkTypes::PrefixIndexA,
@@ -25,9 +27,7 @@ pub fn remove_from_index_a(text: String) -> ExternResult<()> {
         PREFIX_INDEX_A_DEPTH,
     )?;
 
-    index.remove_result(text, GetStrategy::Local)?;
-
-    Ok(())
+    index.remove_result(text, GetStrategy::Local)
 }
 
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
@@ -195,11 +195,16 @@ pub fn commit_incoherent_index_link(tag: String) -> ExternResult<ActionHash> {
         Component::from("not-the-tag".to_string()),
     ]);
 
+    // Encode the tag exactly as TypedPath::make_tag does, so the link is
+    // well-formed and validation must reject it on the tag/target mismatch
+    // rather than on the tag decode.
+    let tag = Path::from(vec![Component::from(tag)]).make_tag()?;
+
     create_link(
         index_root.path_entry_hash()?,
         unrelated.path_entry_hash()?,
         LinkTypes::PrefixIndexA,
-        LinkTag::new(Component::from(tag).as_ref().to_vec()),
+        tag,
     )
 }
 

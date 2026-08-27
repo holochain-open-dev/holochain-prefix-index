@@ -62,16 +62,26 @@ impl PrefixIndex {
         Ok(typed_path)
     }
 
-    pub fn remove_result(&self, text: String, strategy: GetStrategy) -> ExternResult<()> {
+    /// Remove a result from the index, returning how many links were deleted.
+    ///
+    /// Only the calling agent's own links are deleted, because validation lets
+    /// an author delete only what they authored. A count of `0` means this agent
+    /// authored none of the links for this result — either it was never indexed,
+    /// or another agent indexed it first (path creation is deduplicated across
+    /// authors, so the second agent to add a result authors no links for it).
+    /// In that case the result stays in the index and remains searchable.
+    pub fn remove_result(&self, text: String, strategy: GetStrategy) -> ExternResult<usize> {
         self.inner_remove_result(text, None, strategy)
     }
 
+    /// Remove a labeled result from the index, returning how many links were
+    /// deleted. See [`PrefixIndex::remove_result`] for what a count of `0` means.
     pub fn remove_result_with_label(
         &self,
         text: String,
         full_text: String,
         strategy: GetStrategy,
-    ) -> ExternResult<()> {
+    ) -> ExternResult<usize> {
         self.inner_remove_result(text, Some(full_text), strategy)
     }
 
@@ -80,22 +90,21 @@ impl PrefixIndex {
         text: String,
         full_text: Option<String>,
         strategy: GetStrategy,
-    ) -> ExternResult<()> {
+    ) -> ExternResult<usize> {
         let path = self
             .make_result_path(text, full_text)?
             .typed(self.link_type)?
             .with_strategy(strategy);
 
-        self.inner_remove_result_from_path(path, strategy)?;
-
-        Ok(())
+        self.inner_remove_result_from_path(path, strategy)
     }
 
     fn inner_remove_result_from_path(
         &self,
         path: TypedPath,
         strategy: GetStrategy,
-    ) -> ExternResult<()> {
+    ) -> ExternResult<usize> {
+        let mut deleted = 0;
         if path.exists()? {
             if let Some(parent) = path.parent() {
                 // Get all children of parent of path
@@ -133,6 +142,7 @@ impl PrefixIndex {
                 for child in result_children.clone().into_iter() {
                     if child.author == my_agent {
                         delete_link(child.create_link_hash, get_options.clone())?;
+                        deleted += 1;
                     }
                 }
 
@@ -146,12 +156,12 @@ impl PrefixIndex {
 
                 // If no other agent's content still hangs off the parent, prune it too
                 if other_children.is_empty() && !parent.is_root() {
-                    self.inner_remove_result_from_path(parent, strategy)?;
+                    deleted += self.inner_remove_result_from_path(parent, strategy)?;
                 }
             }
         }
 
-        Ok(())
+        Ok(deleted)
     }
 
     pub fn get_results(
@@ -233,8 +243,12 @@ impl PrefixIndex {
         validate_create_link_prefix_index(action, &self)
     }
 
+    /// Validate a delete of a prefix-index link.
+    ///
+    /// An associated function rather than a method: the rule reads no index
+    /// configuration, so callers need not construct a `PrefixIndex` (which costs
+    /// a `zome_info()` host call) to validate a delete.
     pub fn validate_delete_link(
-        self,
         action: TypedAction<DeleteLinkData>,
         original_action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {

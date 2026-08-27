@@ -537,13 +537,14 @@ async fn remove_result_from_index() {
 
     assert_contains_all(&results, &["superduper", "superdupercrazy"]);
 
-    let _: () = conductors[0]
+    let deleted: usize = conductors[0]
         .call(
             &alice.zome("demo"),
             "remove_from_index_a",
             String::from("superduper"),
         )
         .await;
+    assert!(deleted > 0, "alice authored this result's links");
 
     await_consistency_s(60, [&alice, &bob]).await.unwrap();
 
@@ -906,10 +907,11 @@ async fn rejects_deleting_another_agents_link() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn a_result_added_by_two_agents_can_be_removed_by_each() {
+async fn removing_a_shared_result_reports_whose_links_were_deleted() {
     let (conductors, alice, bob) = setup_two_agents().await;
 
-    // Both agents add the same string, so each owns their own link skeleton.
+    // Alice indexes the string first, so she authors its links. Path creation
+    // is deduplicated across authors, so bob's add authors nothing.
     let _: () = conductors[0]
         .call(
             &alice.zome("demo"),
@@ -917,6 +919,7 @@ async fn a_result_added_by_two_agents_can_be_removed_by_each() {
             String::from("superdupercool"),
         )
         .await;
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
     let _: () = conductors[1]
         .call(
             &bob.zome("demo"),
@@ -924,25 +927,63 @@ async fn a_result_added_by_two_agents_can_be_removed_by_each() {
             String::from("superdupercool"),
         )
         .await;
-
     await_consistency_s(60, [&alice, &bob]).await.unwrap();
 
-    // Removal must not attempt to delete the other agent's links, which would
-    // fail validation and roll the whole call back.
-    let _: () = conductors[0]
-        .call(
-            &alice.zome("demo"),
-            "remove_from_index_a",
-            String::from("superdupercool"),
-        )
-        .await;
-    let _: () = conductors[1]
+    // Bob owns none of the links, so his removal deletes nothing and must say
+    // so rather than silently reporting success. Crucially it must not error:
+    // attempting to delete alice's link would fail validation and roll back.
+    let deleted: usize = conductors[1]
         .call(
             &bob.zome("demo"),
             "remove_from_index_a",
             String::from("superdupercool"),
         )
         .await;
+    assert_eq!(deleted, 0, "bob authored none of this result's links");
+
+    // ...and the result is still indexed, for both agents.
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
+    for (conductor, cell) in [(&conductors[0], &alice), (&conductors[1], &bob)] {
+        let results: Vec<String> = conductor
+            .call(
+                &cell.zome("demo"),
+                "search_index_a",
+                SearchIndexInput {
+                    query: "sup".into(),
+                    limit: 5,
+                },
+            )
+            .await;
+        assert_contains_all(&results, &["superdupercool"]);
+    }
+
+    // Alice owns the links, so her removal deletes them and the result goes.
+    let deleted: usize = conductors[0]
+        .call(
+            &alice.zome("demo"),
+            "remove_from_index_a",
+            String::from("superdupercool"),
+        )
+        .await;
+    assert!(deleted > 0, "alice authored this result's links");
+
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
+    for (conductor, cell) in [(&conductors[0], &alice), (&conductors[1], &bob)] {
+        let results: Vec<String> = conductor
+            .call(
+                &cell.zome("demo"),
+                "search_index_a",
+                SearchIndexInput {
+                    query: "sup".into(),
+                    limit: 5,
+                },
+            )
+            .await;
+        assert!(
+            !results.contains(&String::from("superdupercool")),
+            "expected the result to be gone after its author removed it, got {results:?}"
+        );
+    }
 }
 
 #[tokio::test(flavor = "multi_thread")]

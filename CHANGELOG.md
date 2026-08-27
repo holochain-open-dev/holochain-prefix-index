@@ -15,8 +15,9 @@ All notable changes to this project will be documented in this file.
 - **Breaking:** `PrefixIndex::validate_create_link` / `validate_delete_link` now take the 0.7 `TypedAction<CreateLinkData>` / `TypedAction<DeleteLinkData>` produced by `FlatOp::Link(OpLink::…)` match arms
 - Link tags that fail to decode as a path component are now rejected as `Invalid` instead of erroring the validate callback
 - Replaced the second-component width check with a target/tag coherence check: a link under the index root must target the path its tag names. The old check rejected results shorter than the index width, which shard to zero components and so hang directly off the root — they could never be indexed
-- `remove_result` deletes only the calling agent's own links. Deleting another agent's link fails validation and rolls the whole call back, so a result added by two agents was previously unremovable by either
-- `GetStrategy` now reaches `Path::exists()` / `ensure()` as well as `get_links`, so `GetStrategy::Local` no longer makes network calls
+- **Breaking:** `remove_result` / `remove_result_with_label` return the number of links deleted, and delete only the calling agent's own links. Deleting another agent's link fails validation and rolls the whole call back, so a result added by two agents was previously unremovable by either. Because path creation is deduplicated across authors, the second agent to add a result authors no links for it — a count of `0` tells that caller the result is still indexed by someone else rather than silently reporting success
+- **Breaking:** `PrefixIndex::validate_delete_link` is an associated function taking no `self` — the rule reads no index configuration, so callers no longer build a `PrefixIndex` (and pay its `zome_info()` host call) to validate a delete
+- `GetStrategy` now reaches `Path::exists()` / `ensure()` as well as `get_links`, including for child paths walked during a search, so `GetStrategy::Local` no longer makes network calls
 - happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::standard`, `await_consistency_s`, per-test network seeds) and gained negative tests for both validation rules
 
 ### Notes
