@@ -14,8 +14,14 @@ All notable changes to this project will be documented in this file.
 
 - **Breaking:** `PrefixIndex::validate_create_link` / `validate_delete_link` now take the 0.7 `TypedAction<CreateLinkData>` / `TypedAction<DeleteLinkData>` produced by `FlatOp::Link(OpLink::…)` match arms
 - Link tags that fail to decode as a path component are now rejected as `Invalid` instead of erroring the validate callback
-- Removed the second-component width check from create-link validation: results shorter than the index width (and labeled results) legitimately produce a leaf directly under the index root, so the old check made short strings unindexable
-- happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::standard`, `await_consistency_s`, per-test network seeds)
+- Replaced the second-component width check with a target/tag coherence check: a link under the index root must target the path its tag names. The old check rejected results shorter than the index width, which shard to zero components and so hang directly off the root — they could never be indexed
+- `remove_result` deletes only the calling agent's own links. Deleting another agent's link fails validation and rolls the whole call back, so a result added by two agents was previously unremovable by either
+- `GetStrategy` now reaches `Path::exists()` / `ensure()` as well as `get_links`, so `GetStrategy::Local` no longer makes network calls
+- happ manifest moved to the strict 0.7 schema; demo sweettest suite migrated (`SweetConductorBatch::standard`, `await_consistency_s`, per-test network seeds) and gained negative tests for both validation rules
+
+### Notes
+
+- An index name containing `.` has never worked: names are parsed through the path DSL, so a dot splits them into multiple components. Use dot-free index names.
 
 ## [0.14.0] - 2026-01-21
 

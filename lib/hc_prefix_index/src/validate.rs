@@ -1,73 +1,84 @@
+use crate::utils::component_from_link_tag;
 use crate::PrefixIndex;
 use hdi::hash_path::path::root_hash;
 use hdk::hdi::prelude::TypedAction;
 use hdk::prelude::*;
 
 pub fn validate_create_link_prefix_index(
-    action: &TypedAction<CreateLinkData>,
+    action: TypedAction<CreateLinkData>,
     prefix_index: &PrefixIndex,
 ) -> ExternResult<ValidateCallbackResult> {
-    let tag_bytes = SerializedBytes::from(UnsafeBytes::from(action.data.tag.clone().into_inner()));
-    // The tag is author-controlled data: bytes that don't decode to a path
-    // component are the author's fault, so reject rather than error.
-    let tag_component = match Component::try_from(tag_bytes) {
-        Ok(component) => component,
-        Err(_) => {
-            return Ok(ValidateCallbackResult::Invalid(
-                "PrefixIndex link tag must be a path component".into(),
-            ));
-        }
-    };
-    let tag_string = match String::try_from(&tag_component) {
-        Ok(string) => string,
-        Err(_) => {
-            return Ok(ValidateCallbackResult::Invalid(
-                "PrefixIndex link tag must be a string path component".into(),
-            ));
-        }
-    };
+    let CreateLinkData {
+        base_address,
+        target_address,
+        tag,
+        ..
+    } = action.data;
 
-    // First Component: root hash -> index name
-    let path: Path = Path::from(tag_string.clone());
-
-    // Target is an entry hash
-    let maybe_target_entryhash = action.data.target_address.clone().into_entry_hash();
-    if maybe_target_entryhash.is_none() {
+    // The tag is author-controlled data: bytes that don't decode to a string
+    // path component are the author's fault, so reject rather than error.
+    let Some(tag_component) = component_from_link_tag(&tag) else {
         return Ok(ValidateCallbackResult::Invalid(
-            "PrefixIndex first component: target address must be entry hash".into(),
+            "PrefixIndex link tag must be a string path component".into(),
         ));
+    };
+    let Ok(tag_string) = String::try_from(&tag_component) else {
+        return Ok(ValidateCallbackResult::Invalid(
+            "PrefixIndex link tag must be a string path component".into(),
+        ));
+    };
+
+    // Every link in the index targets a Path entry.
+    let Some(target_entry_hash) = target_address.into_entry_hash() else {
+        return Ok(ValidateCallbackResult::Invalid(
+            "PrefixIndex link target address must be an entry hash".into(),
+        ));
+    };
+
+    // First component: DHT root -> index name.
+    if base_address == root_hash()? {
+        if tag_string != prefix_index.index_name {
+            return Ok(ValidateCallbackResult::Invalid(
+                "PrefixIndex first component: tag string must be index name".into(),
+            ));
+        }
+        let index_root = Path::from(vec![tag_component]);
+        if target_entry_hash != index_root.path_entry_hash()? {
+            return Ok(ValidateCallbackResult::Invalid(
+                "PrefixIndex first component: target address must be the index name path".into(),
+            ));
+        }
+
+        return Ok(ValidateCallbackResult::Valid);
     }
 
-    // first component
-    if action.data.base_address == root_hash()? {
-        if let Some(eh) = maybe_target_entryhash {
-            if eh != path.path_entry_hash()? {
-                return Ok(ValidateCallbackResult::Invalid(
-                    "PrefixIndex first component: target address must be index name".into(),
-                ));
-            }
-            if tag_string != prefix_index.index_name {
-                return Ok(ValidateCallbackResult::Invalid(
-                    "PrefixIndex first component: tag string must be index name".into(),
-                ));
-            }
+    // Second component: index name -> child. The base tells us the parent path
+    // here (it is the index root, whose hash we can compute), so the child path
+    // is exactly [index_name, tag] and the target must hash to it. This accepts
+    // both shard components and result leaves shorter than the index width,
+    // which shard to zero components and so hang directly off the index root.
+    let index_name_component = Component::from(prefix_index.index_name.clone());
+    let index_root = Path::from(vec![index_name_component.clone()]);
+    if base_address == AnyLinkableHash::from(index_root.path_entry_hash()?) {
+        let child = Path::from(vec![index_name_component, tag_component]);
+        if target_entry_hash != child.path_entry_hash()? {
+            return Ok(ValidateCallbackResult::Invalid(
+                "PrefixIndex second component: target address must be the path named by the tag"
+                    .into(),
+            ));
         }
     }
-    // second or later component
-    // The component length cannot be validated from the link alone:
-    // - a result string shorter than the index width shards to zero components,
-    //   so the result itself sits directly under the index root
-    // - labeled results replace the leaf with a label of arbitrary length
-    // - third and later components are unreachable from this link's context
-    //   (we can't assume this link author is also the previous link author,
-    //   so we can't use must_get_agent_activity)
+
+    // Third or later component: unvalidatable from this link alone. We know
+    // neither the parent's components (a hash cannot be inverted) nor that this
+    // link's author wrote the parent link, so must_get_agent_activity is no help.
 
     Ok(ValidateCallbackResult::Valid)
 }
 
 pub fn validate_delete_link_prefix_index(
-    action: &TypedAction<DeleteLinkData>,
-    original_action: &TypedAction<CreateLinkData>,
+    action: TypedAction<DeleteLinkData>,
+    original_action: TypedAction<CreateLinkData>,
 ) -> ExternResult<ValidateCallbackResult> {
     if action.author() != original_action.author() {
         return Ok(ValidateCallbackResult::Invalid(

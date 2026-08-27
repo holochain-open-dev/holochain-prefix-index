@@ -12,6 +12,10 @@ pub struct PrefixIndex {
 }
 
 impl PrefixIndex {
+    /// Create a prefix index.
+    ///
+    /// `index_name` must not contain `.`: index names are parsed through the
+    /// path DSL, where a dot splits a name into multiple path components.
     pub fn new<T, E>(
         index_name: String,
         link_type: T,
@@ -79,7 +83,8 @@ impl PrefixIndex {
     ) -> ExternResult<()> {
         let path = self
             .make_result_path(text, full_text)?
-            .typed(self.link_type)?;
+            .typed(self.link_type)?
+            .with_strategy(strategy);
 
         self.inner_remove_result_from_path(path, strategy)?;
 
@@ -118,14 +123,16 @@ impl PrefixIndex {
                     })
                     .collect();
 
-                // Delete children link corresponding to current path
+                // Delete only our own links to the current path. Validation lets
+                // an author delete only their own links, so attempting to delete
+                // another agent's link to a result both agents added would fail
+                // inline validation and roll the whole call back — leaving the
+                // result unremovable by anyone.
+                let my_agent = agent_info()?.agent_initial_pubkey;
                 let get_options = GetOptions::from(strategy);
                 for child in result_children.clone().into_iter() {
-                    let maybe_eh = child.target.into_entry_hash();
-                    if let Some(eh) = maybe_eh {
-                        if eh == path.path_entry_hash()? {
-                            delete_link(child.create_link_hash, get_options.clone())?;
-                        }
+                    if child.author == my_agent {
+                        delete_link(child.create_link_hash, get_options.clone())?;
                     }
                 }
 
@@ -137,7 +144,7 @@ impl PrefixIndex {
                     }
                 }
 
-                // If there are no other children of parent of path, delete parent of path
+                // If no other agent's content still hangs off the parent, prune it too
                 if other_children.is_empty() && !parent.is_root() {
                     self.inner_remove_result_from_path(parent, strategy)?;
                 }
@@ -161,7 +168,8 @@ impl PrefixIndex {
 
         let path = self
             .make_result_path(query.clone(), None)?
-            .typed(self.link_type)?;
+            .typed(self.link_type)?
+            .with_strategy(strategy);
 
         debug!(
             "Searching for '{:?}', starting at path '{:?}'",
@@ -183,7 +191,9 @@ impl PrefixIndex {
             )));
         }
 
-        let base_path = Path::from(self.index_name.clone()).typed(self.link_type)?;
+        let base_path = Path::from(self.index_name.clone())
+            .typed(self.link_type)?
+            .with_strategy(strategy);
 
         self.inner_get_results(base_path, limit, true, strategy)
     }
@@ -220,7 +230,7 @@ impl PrefixIndex {
         self,
         action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {
-        validate_create_link_prefix_index(&action, &self)
+        validate_create_link_prefix_index(action, &self)
     }
 
     pub fn validate_delete_link(
@@ -228,7 +238,7 @@ impl PrefixIndex {
         action: TypedAction<DeleteLinkData>,
         original_action: TypedAction<CreateLinkData>,
     ) -> ExternResult<ValidateCallbackResult> {
-        validate_delete_link_prefix_index(&action, &original_action)
+        validate_delete_link_prefix_index(action, original_action)
     }
 
     /// Gets the deepest-most Paths that descend from `path`, or it's parents, up to limit

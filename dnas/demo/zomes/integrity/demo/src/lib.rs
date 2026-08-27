@@ -57,29 +57,34 @@ pub fn validate_agent_joining(
 // - Countersigned entries include an action from each required signer
 //
 // You can read more about validation here: https://docs.rs/hdi/latest/hdi/index.html#data-validation
+/// The index a link type belongs to. Constructing a `PrefixIndex` costs a
+/// `zome_info()` host call, so build only the one the op needs, and only for
+/// link ops.
+fn prefix_index_for(link_type: LinkTypes) -> ExternResult<PrefixIndex> {
+    match link_type {
+        LinkTypes::PrefixIndexA => PrefixIndex::new(
+            PREFIX_INDEX_A_NAME.into(),
+            LinkTypes::PrefixIndexA,
+            PREFIX_INDEX_A_WIDTH,
+            PREFIX_INDEX_A_DEPTH,
+        ),
+        LinkTypes::PrefixIndexB => PrefixIndex::new(
+            PREFIX_INDEX_B_NAME.into(),
+            LinkTypes::PrefixIndexB,
+            PREFIX_INDEX_B_WIDTH,
+            PREFIX_INDEX_B_DEPTH,
+        ),
+        LinkTypes::PrefixIndexC => PrefixIndex::new(
+            PREFIX_INDEX_C_NAME.into(),
+            LinkTypes::PrefixIndexC,
+            PREFIX_INDEX_C_WIDTH,
+            PREFIX_INDEX_C_DEPTH,
+        ),
+    }
+}
+
 #[hdk_extern]
 pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
-    let prefix_index_a = PrefixIndex::new(
-        PREFIX_INDEX_A_NAME.into(),
-        LinkTypes::PrefixIndexA,
-        PREFIX_INDEX_A_WIDTH,
-        PREFIX_INDEX_A_DEPTH,
-    )?;
-
-    let prefix_index_b = PrefixIndex::new(
-        PREFIX_INDEX_B_NAME.into(),
-        LinkTypes::PrefixIndexB,
-        PREFIX_INDEX_B_WIDTH,
-        PREFIX_INDEX_B_DEPTH,
-    )?;
-
-    let prefix_index_c = PrefixIndex::new(
-        PREFIX_INDEX_C_NAME.into(),
-        LinkTypes::PrefixIndexC,
-        PREFIX_INDEX_C_WIDTH,
-        PREFIX_INDEX_C_DEPTH,
-    )?;
-
     match op.flattened::<(), LinkTypes>()? {
         FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry {
@@ -106,26 +111,14 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             "There are no entry types in this integrity zome".to_string(),
         )),
         FlatOp::Link(op_link) => match op_link {
-            OpLink::CreateLink { link_type, action } => match link_type {
-                LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
-                LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
-                LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
-            },
+            OpLink::CreateLink { link_type, action } => {
+                prefix_index_for(link_type)?.validate_create_link(action)
+            }
             OpLink::DeleteLink {
                 original_action,
                 link_type,
                 action,
-            } => match link_type {
-                LinkTypes::PrefixIndexA => {
-                    prefix_index_a.validate_delete_link(action, original_action)
-                }
-                LinkTypes::PrefixIndexB => {
-                    prefix_index_b.validate_delete_link(action, original_action)
-                }
-                LinkTypes::PrefixIndexC => {
-                    prefix_index_c.validate_delete_link(action, original_action)
-                }
-            },
+            } => prefix_index_for(link_type)?.validate_delete_link(action, original_action),
         },
         FlatOp::CreateRecord(create_record) => match create_record {
             // Complementary validation to the `CreateEntry` Op, in which the record itself is validated
@@ -149,18 +142,16 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             OpRecord::DeleteEntry { .. } => Ok(ValidateCallbackResult::Invalid(
                 "There are no entry types in this integrity zome".to_string(),
             )),
-            // Complementary validation to the `Link(OpLink::CreateLink)` Op, in which the record itself is validated
-            // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Link(OpLink::CreateLink)`
-            // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Link(OpLink::CreateLink)` validation failed
-            OpRecord::CreateLink { link_type, action } => match link_type {
-                LinkTypes::PrefixIndexA => prefix_index_a.validate_create_link(action),
-                LinkTypes::PrefixIndexB => prefix_index_b.validate_create_link(action),
-                LinkTypes::PrefixIndexC => prefix_index_c.validate_create_link(action),
-            },
-            // DeleteLink validation happens in the `Link(OpLink::DeleteLink)` arm above,
-            // where the host hands us the original CreateLink action for free. Validating
-            // here too would force a blocking `must_get_valid_record` fetch of the original
-            // action for every DeleteLink stored by this authority.
+            // Link validation is authoritative in the `Link(OpLink::…)` arms above,
+            // which every base-address authority runs (and which warrants a bad
+            // author). Repeating it here would duplicate the root-hash and
+            // path-hash host calls for CreateLink, and for DeleteLink would force
+            // a blocking `must_get_valid_record` fetch of the original action, since
+            // the record op carries no link type to scope on. The tradeoff is the
+            // one hdi's scaffold documents: this action-hash authority may store a
+            // link op that the base authority rejected, so don't rely on a link
+            // record's validity as evidence the link itself is valid.
+            OpRecord::CreateLink { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::DeleteLink { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
             OpRecord::UpdatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),

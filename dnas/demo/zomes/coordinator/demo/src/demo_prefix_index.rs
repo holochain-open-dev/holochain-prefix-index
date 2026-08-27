@@ -178,3 +178,48 @@ pub fn remove_cashtag_from_index_a(cashtag: String) -> ExternResult<()> {
 fn make_cashtag_index_text(text: String) -> String {
     text.split('$').nth(1).unwrap_or(&text).to_string()
 }
+
+// --- Test-support functions -------------------------------------------------
+// These bypass the PrefixIndex API to author links the library itself would
+// never write, so the test suite can assert that validation rejects them.
+
+/// Commit a link under the index root whose tag does not name its target path.
+/// Validation must reject this: it would inject an arbitrary string into search
+/// results at a path that doesn't exist.
+#[hdk_extern]
+pub fn commit_incoherent_index_link(tag: String) -> ExternResult<ActionHash> {
+    let index_root = Path::from(vec![Component::from(PREFIX_INDEX_A_NAME.to_string())]);
+    // Target a path that the tag does not name.
+    let unrelated = Path::from(vec![
+        Component::from(PREFIX_INDEX_A_NAME.to_string()),
+        Component::from("not-the-tag".to_string()),
+    ]);
+
+    create_link(
+        index_root.path_entry_hash()?,
+        unrelated.path_entry_hash()?,
+        LinkTypes::PrefixIndexA,
+        LinkTag::new(Component::from(tag).as_ref().to_vec()),
+    )
+}
+
+/// Delete another agent's index link by its create-link action hash.
+/// Validation must reject this: only the original author may delete a link.
+#[hdk_extern]
+pub fn delete_index_link(create_link_hash: ActionHash) -> ExternResult<ActionHash> {
+    delete_link(create_link_hash, GetOptions::network())
+}
+
+/// The create-link actions under the index root, so a test can hand one to
+/// `delete_index_link` from another agent.
+#[hdk_extern]
+pub fn get_index_root_links(_: ()) -> ExternResult<Vec<Link>> {
+    let index_root = Path::from(vec![Component::from(PREFIX_INDEX_A_NAME.to_string())]);
+    get_links(
+        LinkQuery::new(
+            index_root.path_entry_hash()?,
+            LinkTypes::PrefixIndexA.try_into_filter()?,
+        ),
+        GetStrategy::Network,
+    )
+}

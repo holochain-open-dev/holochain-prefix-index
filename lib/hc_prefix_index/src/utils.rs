@@ -1,5 +1,19 @@
 use hdk::prelude::*;
 
+/// Decode a link tag into the path [`Component`] it names.
+///
+/// Returns `None` for an empty tag (which names no component) and for bytes
+/// that don't decode to a component.
+pub fn component_from_link_tag(tag: &LinkTag) -> Option<Component> {
+    let bytes = &tag.0[..];
+    if bytes.is_empty() {
+        return None;
+    }
+    SerializedBytes::from(UnsafeBytes::from(bytes.to_vec()))
+        .try_into()
+        .ok()
+}
+
 /// Duplicates of get_children from holochain TypedPath
 /// but without calling ensure() on those children
 pub fn get_children(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<Link>> {
@@ -20,22 +34,11 @@ pub fn get_children(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<
 /// but without calling ensure() on those children
 pub fn get_children_paths(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<TypedPath>> {
     let children = get_children(path.clone(), strategy)?;
-    let components: ExternResult<Vec<Option<Component>>> = children
+    let components: Vec<Option<Component>> = children
         .into_iter()
-        .map(|link| {
-            let component_bytes = &link.tag.0[..];
-            if component_bytes.is_empty() {
-                Ok(None)
-            } else {
-                Ok(Some(
-                    SerializedBytes::from(UnsafeBytes::from(component_bytes.to_vec()))
-                        .try_into()
-                        .map_err(|e: SerializedBytesError| wasm_error!(e))?,
-                ))
-            }
-        })
+        .map(|link| component_from_link_tag(&link.tag))
         .collect();
-    Ok(components?
+    Ok(components
         .into_iter()
         .map(|maybe_component| {
             let mut new_path = path.path.clone();
