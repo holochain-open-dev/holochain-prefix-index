@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "start": "npm run build:happ && hc sandbox clean && echo 'pass' | hc sandbox --piped generate workdir/demo.happ -r=5000 -a demo --in-process-lair",
-    "test": "npm run build:happ && cargo test",
+    "test": "npm run build:happ && cargo test -- --test-threads=4",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:zomes": "RUSTFLAGS='--cfg getrandom_backend=\"custom\"' CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown"
   },

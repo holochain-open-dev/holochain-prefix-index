@@ -65,11 +65,17 @@ impl PrefixIndex {
     /// Remove a result from the index, returning how many links were deleted.
     ///
     /// Only the calling agent's own links are deleted, because validation lets
-    /// an author delete only what they authored. A count of `0` means this agent
-    /// authored none of the links for this result — either it was never indexed,
-    /// or another agent indexed it first (path creation is deduplicated across
-    /// authors, so the second agent to add a result authors no links for it).
-    /// In that case the result stays in the index and remains searchable.
+    /// an author delete only what they authored.
+    ///
+    /// The count reports what this call deleted, not the state of the index
+    /// afterwards. `0` means this agent authored none of the links this call
+    /// could see — the result was never indexed, or another agent indexed it
+    /// first (path creation is deduplicated across authors, so the second agent
+    /// to add a result authors no links for it), or, under
+    /// [`GetStrategy::Local`] on a node that has not synced them, the links
+    /// exist but were not visible. A non-zero count does not mean the result is
+    /// gone either: another agent racing the same add authors duplicate links,
+    /// which keep it indexed.
     pub fn remove_result(&self, text: String, strategy: GetStrategy) -> ExternResult<usize> {
         self.inner_remove_result(text, None, strategy)
     }
@@ -154,8 +160,15 @@ impl PrefixIndex {
                     }
                 }
 
-                // If no other agent's content still hangs off the parent, prune it too
-                if other_children.is_empty() && !parent.is_root() {
+                // Another author's link to this path survives our deletion, so
+                // the path is still live and its parent chain must stay: pruning
+                // it would orphan their link and de-index the result for everyone.
+                let others_still_link_here =
+                    result_children.iter().any(|child| child.author != my_agent);
+
+                // Prune the parent only when nothing hangs off it any more —
+                // neither a sibling path nor a surviving link to this one.
+                if other_children.is_empty() && !others_still_link_here && !parent.is_root() {
                     deleted += self.inner_remove_result_from_path(parent, strategy)?;
                 }
             }

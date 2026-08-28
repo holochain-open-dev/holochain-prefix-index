@@ -34,17 +34,15 @@ pub fn get_children(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<
 /// but without calling ensure() on those children
 pub fn get_children_paths(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<TypedPath>> {
     let children = get_children(path.clone(), strategy)?;
-    let components: Vec<Option<Component>> = children
+    Ok(children
         .into_iter()
-        .map(|link| component_from_link_tag(&link.tag))
-        .collect();
-    Ok(components
-        .into_iter()
-        .map(|maybe_component| {
+        // A tag that names no component (empty, or bytes that don't decode)
+        // describes no child. Yielding the parent unchanged instead would make
+        // the caller's descent recurse on the path it is already walking.
+        .filter_map(|link| component_from_link_tag(&link.tag))
+        .map(|component| {
             let mut new_path = path.path.clone();
-            if let Some(component) = maybe_component {
-                new_path.append_component(component);
-            }
+            new_path.append_component(component);
             // into_typed resets the strategy to the default, so carry the
             // caller's through — otherwise every exists() below the top level
             // of a Local search still goes to the network.

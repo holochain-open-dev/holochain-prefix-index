@@ -228,3 +228,28 @@ pub fn get_index_root_links(_: ()) -> ExternResult<Vec<Link>> {
         GetStrategy::Network,
     )
 }
+
+/// Create a second link to an already-indexed result's path, without ensuring
+/// the chain above it. This is the state two agents reach when they race an
+/// add: the one that already sees the parent chain authors only the leaf.
+#[hdk_extern]
+pub fn add_duplicate_leaf_link(text: String) -> ExternResult<ActionHash> {
+    let index = PrefixIndex::new(
+        PREFIX_INDEX_A_NAME.into(),
+        LinkTypes::PrefixIndexA,
+        PREFIX_INDEX_A_WIDTH,
+        PREFIX_INDEX_A_DEPTH,
+    )?;
+    let path = index.make_result_path(text, None)?;
+    let typed = path.typed(LinkTypes::PrefixIndexA)?;
+    let parent = typed
+        .parent()
+        .ok_or_else(|| wasm_error!(WasmErrorInner::Guest("result path has no parent".into())))?;
+
+    create_link(
+        parent.path_entry_hash()?,
+        typed.path_entry_hash()?,
+        LinkTypes::PrefixIndexA,
+        typed.make_tag()?,
+    )
+}

@@ -4,6 +4,11 @@ version = "0.15.0"
 edition = "2021"
 description = "Prefix indexing of strings for use by type-ahead interfaces in holochain apps"
 license = "Apache-2.0"
+repository = "https://github.com/holochain-open-dev/holochain-prefix-index"
+documentation = "https://docs.rs/hc_prefix_index"
+readme = "README.md"
+keywords = ["holochain", "index", "search", "typeahead", "autocomplete"]
+categories = ["database"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

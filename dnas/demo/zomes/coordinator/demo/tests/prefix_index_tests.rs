@@ -1011,3 +1011,57 @@ async fn indexes_a_result_shorter_than_the_index_width() {
 
     assert_contains_all(&results, &["ab"]);
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn removal_keeps_the_chain_another_agents_link_hangs_off() {
+    let (conductors, alice, bob) = setup_two_agents().await;
+
+    // Alice indexes the result, authoring the whole chain down to the leaf.
+    let _: () = conductors[0]
+        .call(
+            &alice.zome("demo"),
+            "add_to_index_a",
+            String::from("superdupercool"),
+        )
+        .await;
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
+
+    // Bob authors a second link to the same leaf, as happens when two agents
+    // race an add and one already sees the parent chain.
+    let _: ActionHash = conductors[1]
+        .call(
+            &bob.zome("demo"),
+            "add_duplicate_leaf_link",
+            String::from("superdupercool"),
+        )
+        .await;
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
+
+    // Alice removes her own links. Bob's link to the leaf survives, so the
+    // chain it hangs off must survive too — pruning it would orphan Bob's link
+    // and de-index the result for everyone.
+    let deleted: usize = conductors[0]
+        .call(
+            &alice.zome("demo"),
+            "remove_from_index_a",
+            String::from("superdupercool"),
+        )
+        .await;
+    assert!(deleted > 0, "alice authored this result's links");
+
+    await_consistency_s(60, [&alice, &bob]).await.unwrap();
+
+    for (conductor, cell) in [(&conductors[0], &alice), (&conductors[1], &bob)] {
+        let results: Vec<String> = conductor
+            .call(
+                &cell.zome("demo"),
+                "search_index_a",
+                SearchIndexInput {
+                    query: "sup".into(),
+                    limit: 5,
+                },
+            )
+            .await;
+        assert_contains_all(&results, &["superdupercool"]);
+    }
+}
